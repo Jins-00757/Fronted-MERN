@@ -1,25 +1,25 @@
+import { useAuth } from '../../context/useAuth';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { Loader, Container } from '@mantine/core';
 
-export const ProtectedRoute = ({ children, requiredRole = null }) => {
-  const { user, isLoading } = useAuth();
+export const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      
-        
-      
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh'
+      }}>
+        <div>Loading...</div>
+      </div>
     );
   }
 
-  if (!user) {
-    return ;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user.role !== requiredRole) {
-    return ;
-  }
-
-  return children;
+  return <div style={{ padding: '2rem' }}>{children}</div>;
 };

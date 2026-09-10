@@ -1,76 +1,122 @@
-import { useState, useCallback } from 'react';
-import AuthContext from './authContext';
+import { useState, useCallback, useEffect } from 'react';
+import AuthContext from './AuthContext';
+import api from '../services/api';
 
-export default function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const signup = useCallback(async (email, password) => {
-    try {
-      // TODO: Implement signup API call
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Signup failed');
+  // Restore session on app load
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get('/auth/me');
+        if (response) {
+          setUser(response);
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.log('Session restore failed:', err.message);
+        setIsAuthenticated(false);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      const data = await response.json();
+    restoreSession();
+  }, []);
+
+  const signup = useCallback(async (name, email, password) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await api.post('/auth/signup', { name, email, password });
+      setUser(response);
       setIsAuthenticated(true);
-      return data;
-    } catch (error) {
-      console.error('Signup error:', error);
-      throw error;
+      return response;
+    } catch (err) {
+      setError(err.message || 'Signup failed');
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
   const login = useCallback(async (email, password) => {
+    setIsLoading(true);
+    setError(null);
     try {
-      // TODO: Implement login API call
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const data = await response.json();
+      const response = await api.post('/auth/login', { email, password });
+      setUser(response);
       setIsAuthenticated(true);
-      return data;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+      return response;
+    } catch (err) {
+      setError(err.message || 'Login failed');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const loginWithSalesforce = useCallback(async () => {
+    try {
+      const response = await api.get('/auth/salesforce/authorize');
+      if (response.authUrl) {
+        window.location.href = response.authUrl;
+      }
+    } catch (err) {
+      setError(err.message || 'Salesforce login failed');
+      throw err;
+    }
+  }, []);
+
+  const handleOAuthCallback = useCallback(async (code) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await api.post('/auth/salesforce/callback', { code });
+      setUser(response);
+      setIsAuthenticated(true);
+      return response;
+    } catch (err) {
+      setError(err.message || 'OAuth callback failed');
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
   const logout = useCallback(async () => {
+    setIsLoading(true);
     try {
-      // TODO: Implement logout API call
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-      });
+      await api.post('/auth/logout');
+      setUser(null);
       setIsAuthenticated(false);
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
+      setError(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
   const value = {
+    user,
     isAuthenticated,
+    isLoading,
+    error,
     signup,
     login,
+    loginWithSalesforce,
+    handleOAuthCallback,
     logout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
