@@ -15,22 +15,18 @@ export default function Login() {
     setError('');
     setIsLoading(true);
 
-    try {
-      await login(email, password);
+    const result = await login(email, password);
+    setIsLoading(false);
+
+    if (result?.success) {
       navigate('/');
-    } catch (err) {
-      setError(err.message || 'Login failed');
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(result?.error || 'Login failed');
     }
   };
 
   const handleSalesforceLogin = async () => {
-    try {
-      await loginWithSalesforce();
-    } catch (err) {
-      setError(err.message || 'Salesforce login failed');
-    }
+    await loginWithSalesforce();
   };
 
   return (

@@ -84,15 +84,9 @@ export const Footer = () => {
               </button>
               <button
                 className="footer-link"
-                onClick={() => handleNavigation('/pipeline')}
+                onClick={() => handleNavigation('/opportunities')}
               >
-                Pipeline
-              </button>
-              <button
-                className="footer-link"
-                onClick={() => handleNavigation('/analytics')}
-              >
-                Analytics
+                Opportunities
               </button>
               <a href="#features" className="footer-link">
                 Features

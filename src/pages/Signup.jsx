@@ -34,13 +34,13 @@ export const Signup = () => {
 
     setIsLoading(true);
 
-    try {
-      await signup(name, email, password);
+    const result = await signup({ name, email, password, confirmPassword });
+    setIsLoading(false);
+
+    if (result?.success) {
       navigate('/');
-    } catch (err) {
-      setError(err.message || 'Signup failed');
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(result?.error || 'Signup failed');
     }
   };
 

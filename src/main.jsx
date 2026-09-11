@@ -1,20 +1,26 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { MantineProvider } from '@mantine/core'
-import '@mantine/core/styles.css'
-import './index.css'
 import App from './App.jsx'
-import { AuthProvider } from "./context/AuthProvider.jsx"
+import { AuthProvider } from './context/AuthProvider.jsx'
+import './index.css'
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <BrowserRouter>
-      <MantineProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </MantineProvider>
+/**
+ * Main Entry Point - React Router v7 Future Flags Enabled
+ * Prepares app for React Router v7 with startTransition and relative paths
+ */
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,    // Enable React 18 startTransition for state updates
+        v7_relativeSplatPath: true   // Enable relative route resolution in splat routes
+      }}
+    >
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
-  </StrictMode>,
+  </React.StrictMode>,
 )

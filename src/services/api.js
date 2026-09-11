@@ -11,19 +11,22 @@ const api = axios.create({
   },
 });
 
-// Response interceptor: handle errors uniformly
+// Response interceptor: normalize error messages, but keep the standard
+// axios response shape (response.data) intact - every caller in this app
+// reads response.data.status / response.data.success / response.data.data,
+// so unwrapping here would silently corrupt every request.
 api.interceptors.response.use(
-  (response) => response.data.data || response.data,
+  (response) => response,
   (error) => {
-    const message = error.response?.data?.message || error.message || 'Network error';
-    const status = error.response?.status;
-    const details = error.response?.data?.errors;
+    const message =
+      error.response?.data?.message || error.response?.data?.error || error.message || 'Network error';
 
     const err = new Error(message);
-    err.status = status;
-    err.details = details;
+    err.status = error.response?.status;
+    err.details = error.response?.data?.errors;
+    err.response = error.response;
 
-    throw err;
+    return Promise.reject(err);
   }
 );
 

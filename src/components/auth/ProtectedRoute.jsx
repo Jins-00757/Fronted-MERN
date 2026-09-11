@@ -2,9 +2,13 @@ import { useAuth } from '../../context/useAuth';
 import { Navigate } from 'react-router-dom';
 
 export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isInitializing } = useAuth();
 
-  if (isLoading) {
+  // Only gate on the initial session-restore, not on isLoading in general -
+  // that flag also flips true/false during unrelated actions like Connect
+  // Salesforce, which would otherwise unmount and remount every protected
+  // page (losing its local state) each time one of those actions runs.
+  if (isInitializing) {
     return (
       <div style={{
         display: 'flex',

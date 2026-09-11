@@ -175,6 +175,21 @@
   font-size: 0.9rem;
 }
 
+/* Salesforce connection badge (in navbar-auth, when connected) */
+.salesforce-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background-color: #f0fdf4;
+  color: var(--success-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #bbf7d0;
+  white-space: nowrap;
+}
+
 /* Auth Buttons (not logged in) */
 .auth-buttons {
   display: flex;

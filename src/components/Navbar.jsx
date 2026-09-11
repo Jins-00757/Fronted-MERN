@@ -13,8 +13,8 @@ import './Navbar.css';
  * - Smooth transitions and hover effects
  * - Accessibility compliant (ARIA labels, keyboard navigation)
  */
-export const Navbar = () => {
-  const { isAuthenticated, user, logout, isLoading } = useAuth();
+export const Navbar = ({ onSalesforceClick }) => {
+  const { isAuthenticated, user, logout, isLoading, disconnectSalesforce } = useAuth();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -29,6 +29,11 @@ export const Navbar = () => {
       console.error('Logout failed:', error);
     }
   }, [logout, navigate]);
+
+  const handleDisconnectSalesforce = useCallback(async () => {
+    setIsDropdownOpen(false);
+    await disconnectSalesforce();
+  }, [disconnectSalesforce]);
 
   const handleNavigation = useCallback((path) => {
     navigate(path);
@@ -81,18 +86,14 @@ export const Navbar = () => {
               >
                 Dashboard
               </button>
-              <button
-                className="navbar-link"
-                onClick={() => handleNavigation('/pipeline')}
-              >
-                Pipeline
-              </button>
-              <button
-                className="navbar-link"
-                onClick={() => handleNavigation('/analytics')}
-              >
-                Analytics
-              </button>
+              {user?.isSalesforceConnected && (
+                <button
+                  className="navbar-link"
+                  onClick={() => handleNavigation('/opportunities')}
+                >
+                  Opportunities
+                </button>
+              )}
             </>
           )}
         </div>
@@ -103,6 +104,15 @@ export const Navbar = () => {
             <span className="auth-loading">Loading...</span>
           ) : isAuthenticated ? (
             <div className="user-profile-container">
+              {user?.isSalesforceConnected ? (
+                <span className="salesforce-badge" title={user?.salesforceOrgName || 'Salesforce'}>
+                  ✓ Salesforce
+                </span>
+              ) : (
+                <button className="btn-link" onClick={onSalesforceClick}>
+                  🔗 Connect Salesforce
+                </button>
+              )}
               <button
                 className="user-profile-button"
                 onClick={toggleDropdown}
@@ -129,29 +139,24 @@ export const Navbar = () => {
 
                   <div className="dropdown-divider"></div>
 
-                  <button
-                    className="dropdown-item"
-                    onClick={() => handleNavigation('/profile')}
-                    role="menuitem"
-                  >
-                    👤 Profile
-                  </button>
-
-                  <button
-                    className="dropdown-item"
-                    onClick={() => handleNavigation('/settings')}
-                    role="menuitem"
-                  >
-                    ⚙️ Settings
-                  </button>
-
-                  {user?.salesforceUserId && (
+                  {user?.isSalesforceConnected ? (
                     <button
-                      className="dropdown-item salesforce-connected"
+                      className="dropdown-item"
+                      onClick={handleDisconnectSalesforce}
                       role="menuitem"
-                      disabled
                     >
-                      ✓ Salesforce Connected
+                      🔌 Disconnect Salesforce
+                    </button>
+                  ) : (
+                    <button
+                      className="dropdown-item"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        onSalesforceClick?.();
+                      }}
+                      role="menuitem"
+                    >
+                      🔗 Connect Salesforce
                     </button>
                   )}
 
