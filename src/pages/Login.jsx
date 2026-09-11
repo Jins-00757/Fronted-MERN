@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 
-export const Login = () => {
+export default function Login() {
   const { login, loginWithSalesforce } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -36,7 +36,7 @@ export const Login = () => {
   return (
     <div style={{
       maxWidth: '420px',
-      margin: '40px auto',
+      margin: '2rem auto',
       padding: '20px',
       border: '1px solid #ddd',
       borderRadius: '8px',
@@ -135,11 +135,12 @@ export const Login = () => {
           border: '1px solid #ccc',
           borderRadius: '4px',
           cursor: 'pointer',
-          fontSize: '16px'
+          fontSize: '16px',
+          marginTop: '10px'
         }}
       >
         Sign in with Salesforce
       </button>
     </div>
   );
-};
+}

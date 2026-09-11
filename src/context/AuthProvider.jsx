@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import AuthContext from './AuthContext';
+import authContext from './authContext';
 import api from '../services/api';
 
 export const AuthProvider = ({ children }) => {
@@ -118,5 +118,5 @@ export const AuthProvider = ({ children }) => {
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <authContext.Provider value={value}>{children}</authContext.Provider>;
 };

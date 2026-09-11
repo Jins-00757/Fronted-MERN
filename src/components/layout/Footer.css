@@ -1,0 +1,9 @@
+/* Ensure footer doesn't float */
+footer.footer {
+  display: block;
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+/* Rest of your Footer.css continues below... */
