@@ -65,7 +65,7 @@ export const OpportunitiesList = () => {
     );
   }
 
-  const totalValue = opportunities.reduce((sum, opp) => sum + (opp.amount || 0), 0);
+  const totalValue = opportunities.reduce((sum, opp) => sum + (opp.Amount || 0), 0);
 
   return (
     <div className="container">
@@ -85,6 +85,7 @@ export const OpportunitiesList = () => {
             borderRadius: '6px',
             border: '1px solid #d1d5db',
             background: 'white',
+            color: '#374151',
             cursor: isLoading ? 'default' : 'pointer',
             fontWeight: 600,
           }}
@@ -128,9 +129,9 @@ export const OpportunitiesList = () => {
             </thead>
             <tbody>
               {opportunities.map((opp) => (
-                <tr key={opp.id} style={{ borderTop: '1px solid #e5e7eb' }}>
-                  <Td style={{ fontWeight: 600 }}>{opp.name}</Td>
-                  <Td align="right">{formatCurrency(opp.amount)}</Td>
+                <tr key={opp.Id} style={{ borderTop: '1px solid #e5e7eb' }}>
+                  <Td style={{ fontWeight: 600 }}>{opp.Name}</Td>
+                  <Td align="right">{formatCurrency(opp.Amount)}</Td>
                   <Td>
                     <span
                       style={{
@@ -140,14 +141,14 @@ export const OpportunitiesList = () => {
                         fontSize: '0.75rem',
                         fontWeight: 600,
                         color: 'white',
-                        background: STAGE_COLORS[opp.stage] || '#6b7280',
+                        background: STAGE_COLORS[opp.StageName] || '#6b7280',
                       }}
                     >
-                      {opp.stage}
+                      {opp.StageName}
                     </span>
                   </Td>
-                  <Td>{opp.closeDate ? new Date(opp.closeDate).toLocaleDateString() : 'N/A'}</Td>
-                  <Td>{opp.owner}</Td>
+                  <Td>{opp.CloseDate ? new Date(opp.CloseDate).toLocaleDateString() : 'N/A'}</Td>
+                  <Td>{opp.Owner?.Name || 'N/A'}</Td>
                 </tr>
               ))}
             </tbody>

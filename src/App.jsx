@@ -179,10 +179,10 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
         if (cancelled) return;
 
         const opportunities = opportunitiesRes.data.success ? opportunitiesRes.data.data : [];
-        const pipeline = pipelineRes.data.success ? pipelineRes.data.data : [];
+        const pipeline = pipelineRes.data.success ? pipelineRes.data.data : null;
 
-        const closedWon = pipeline.find((s) => s.stage === 'Closed Won');
-        const pipelineValue = opportunities.reduce((sum, opp) => sum + (opp.amount || 0), 0);
+        const closedWon = pipeline?.stageBreakdown?.find((s) => s.stage === 'Closed Won');
+        const pipelineValue = opportunities.reduce((sum, opp) => sum + (opp.Amount || 0), 0);
 
         setStats({
           activeDeals: opportunities.length,
@@ -297,7 +297,7 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
         {/* Closed Won Card */}
         <div style={{
           padding: '1.5rem',
-          background: '#f0fdf4',
+          background: '#cfbff4',
           borderRadius: '8px',
           borderLeft: '4px solid #10b981',
           boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
