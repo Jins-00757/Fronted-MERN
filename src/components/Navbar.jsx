@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { NotificationCenter } from './NotificationCenter';
+import { Logo } from './ui/Logo';
 import './Navbar.css';
 
 // NotificationCenter owns its own useNotifications() WebSocket connection,
@@ -70,8 +71,7 @@ export const Navbar = ({ onSalesforceClick }) => {
             onClick={() => handleNavigation('/')}
             aria-label="Sales Pipeline Intelligence Home"
           >
-            <span className="logo-icon">📊</span>
-            <span className="logo-text">Sales Pipeline Intelligence</span>
+            <Logo size={30} />
           </button>
         </div>
 

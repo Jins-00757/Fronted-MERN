@@ -51,6 +51,7 @@
   border-radius: 6px;
   font-size: 0.9rem;
   background: white;
+  color: #1f2937;
 }
 
 .filter-group select:focus,
@@ -89,6 +90,8 @@
   border-radius: 6px;
   font-size: 1rem;
   font-family: inherit;
+  color: #1f2937;
+  background: white;
 }
 
 .form-group input:focus,
@@ -311,6 +314,8 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.9rem;
+  color: #1f2937;
+  background: white;
 }
 
 .edit-actions {

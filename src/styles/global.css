@@ -228,17 +228,6 @@ a:hover {
 }
 
 /* ========================================
-   DARK MODE SUPPORT
-   ======================================== */
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: var(--bg-dark);
-    color: var(--text-light);
-  }
-}
-
-/* ========================================
    REDUCED MOTION
    ======================================== */
 

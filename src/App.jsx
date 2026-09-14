@@ -4,6 +4,8 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuth } from './context/useAuth';
 import Login from './pages/Login';
 import { Signup } from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/layout/Footer';
 import { SalesforceConnect } from './components/salesforce/SalesforceConnect';
@@ -106,6 +108,14 @@ function App() {
           <Route
             path="/signup"
             element={isAuthenticated ? <Navigate to="/" replace /> : <Signup />}
+          />
+          <Route
+            path="/forgot-password"
+            element={isAuthenticated ? <Navigate to="/" replace /> : <ForgotPassword />}
+          />
+          <Route
+            path="/reset-password"
+            element={isAuthenticated ? <Navigate to="/" replace /> : <ResetPassword />}
           />
 
           {/* Protected Routes */}

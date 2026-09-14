@@ -53,11 +53,9 @@
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--navbar-text);
   font-size: 1.25rem;
   font-weight: 600;
   padding: 0.5rem;
@@ -69,16 +67,12 @@
   background-color: var(--navbar-hover);
 }
 
-.logo-icon {
-  font-size: 1.5rem;
-}
-
-.logo-text {
-  font-size: 1rem;
+.navbar-logo .brand-logo-text-main {
+  color: var(--navbar-text);
 }
 
 @media (max-width: 768px) {
-  .logo-text {
+  .navbar-logo .brand-logo-text {
     display: none;
   }
 }

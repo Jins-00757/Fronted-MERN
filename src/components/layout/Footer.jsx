@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Logo } from '../ui/Logo';
 import './Footer.css';
 
 /**
@@ -32,8 +33,7 @@ export const Footer = () => {
           <div className="footer-section">
             <h3 className="footer-title">About</h3>
             <div className="footer-logo">
-              <span className="footer-logo-icon">📊</span>
-              <span className="footer-logo-text">Sales Pipeline Intelligence</span>
+              <Logo size={28} onDark />
             </div>
             <p className="footer-description">
               Empower your sales team with advanced pipeline analytics and Salesforce integration.

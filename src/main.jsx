@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthProvider.jsx'
-import './index.css'
 
 /**
  * Main Entry Point - React Router v7 Future Flags Enabled

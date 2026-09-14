@@ -23,6 +23,8 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 1rem;
+  color: #1f2937;
+  background-color: #ffffff;
 }
 
 .search-input:focus {
@@ -53,6 +55,7 @@
   padding: 0.6rem 0.9rem;
   cursor: pointer;
   font-size: 0.9rem;
+  color: #1f2937;
 }
 
 .suggestion-item:hover {
@@ -96,6 +99,7 @@
   border-radius: 6px;
   font-size: 0.85rem;
   background: white;
+  color: #1f2937;
 }
 
 .filter-group input:focus,
