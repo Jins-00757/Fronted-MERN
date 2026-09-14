@@ -1,13 +1,9 @@
 
 import { useNotifications } from '../hooks/useNotifications';
-import { useAuth } from '../context/useAuth';
 import './NotificationCenter.css';
 
 export const NotificationCenter = () => {
-  const { user } = useAuth();
-  const { notifications, isConnected, clearNotifications } = useNotifications(
-    user?.token
-  );
+  const { notifications, isConnected, clearNotifications } = useNotifications();
 
   return (
     <div className="notification-center">

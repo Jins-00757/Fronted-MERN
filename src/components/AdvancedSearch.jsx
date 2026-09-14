@@ -19,14 +19,14 @@ export const AdvancedSearch = ({ onResults }) => {
 
   // Get suggestions as user types
   useEffect(() => {
-    if (query.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
     const fetchSuggestions = async () => {
+      if (query.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+
       try {
-        const response = await api.get('/api/search/suggestions', {
+        const response = await api.get('/search/suggestions', {
           params: { q: query },
         });
         setSuggestions(response.data.suggestions || []);
@@ -44,7 +44,7 @@ export const AdvancedSearch = ({ onResults }) => {
     setLoading(true);
 
     try {
-      const response = await api.get('/api/search/opportunities', {
+      const response = await api.get('/search/opportunities', {
         params: {
           q: query,
           ...filters,
@@ -76,7 +76,7 @@ export const AdvancedSearch = ({ onResults }) => {
 
   const handleExport = async (format) => {
     try {
-      const response = await api.get(`/api/export/${format}`, {
+      const response = await api.get(`/search/export/${format}`, {
         params: {
           q: query,
           ...filters,
@@ -220,12 +220,12 @@ export const AdvancedSearch = ({ onResults }) => {
           <div className="results-count">{results.length} results found</div>
           <div className="results-list">
             {results.map((result) => (
-              <div key={result._id} className="result-item">
-                <h4>{result.name}</h4>
+              <div key={result.Id} className="result-item">
+                <h4>{result.Name}</h4>
                 <div className="result-details">
-                  <span>${(result.amount || 0).toLocaleString()}</span>
-                  <span>{result.stage}</span>
-                  <span>{new Date(result.closeDate).toLocaleDateString()}</span>
+                  <span>${(result.Amount || 0).toLocaleString()}</span>
+                  <span>{result.StageName}</span>
+                  <span>{result.CloseDate ? new Date(result.CloseDate).toLocaleDateString() : ''}</span>
                 </div>
               </div>
             ))}

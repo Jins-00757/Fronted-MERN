@@ -47,7 +47,12 @@ export const useSalesforceData = (
           throw new Error(response.data.message || 'Failed to fetch data');
         }
       } catch (err) {
-        if (retries < retryCount) {
+        // 4xx client errors (auth, permissions, validation, not found) will
+        // never succeed by retrying - only retry transient failures
+        // (network errors, 5xx, or 429 rate limiting).
+        const isRetryable = !err.status || err.status >= 500 || err.status === 429;
+
+        if (isRetryable && retries < retryCount) {
           retries++;
           const delay = retryDelay * Math.pow(2, retries - 1);
           console.warn(

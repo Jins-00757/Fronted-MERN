@@ -1,7 +1,13 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { NotificationCenter } from './NotificationCenter';
 import './Navbar.css';
+
+// NotificationCenter owns its own useNotifications() WebSocket connection,
+// so it's only mounted while the dropdown is open - mounting it eagerly (or
+// calling useNotifications() again here for a badge count) would open a
+// second, redundant socket per page load.
 
 /**
  * Navbar Component - Professional Navigation with Authentication State
@@ -18,6 +24,7 @@ export const Navbar = ({ onSalesforceClick }) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -43,6 +50,10 @@ export const Navbar = ({ onSalesforceClick }) => {
 
   const toggleDropdown = useCallback(() => {
     setIsDropdownOpen(prev => !prev);
+  }, []);
+
+  const toggleNotifications = useCallback(() => {
+    setIsNotificationsOpen(prev => !prev);
   }, []);
 
   const toggleMobileMenu = useCallback(() => {
@@ -87,12 +98,32 @@ export const Navbar = ({ onSalesforceClick }) => {
                 Dashboard
               </button>
               {user?.isSalesforceConnected && (
-                <button
-                  className="navbar-link"
-                  onClick={() => handleNavigation('/opportunities')}
-                >
-                  Opportunities
-                </button>
+                <>
+                  <button
+                    className="navbar-link"
+                    onClick={() => handleNavigation('/opportunities')}
+                  >
+                    Opportunities
+                  </button>
+                  <button
+                    className="navbar-link"
+                    onClick={() => handleNavigation('/analytics')}
+                  >
+                    Analytics
+                  </button>
+                  <button
+                    className="navbar-link"
+                    onClick={() => handleNavigation('/search')}
+                  >
+                    Search
+                  </button>
+                  <button
+                    className="navbar-link"
+                    onClick={() => handleNavigation('/bulk-operations')}
+                  >
+                    Bulk Operations
+                  </button>
+                </>
               )}
             </>
           )}
@@ -104,6 +135,22 @@ export const Navbar = ({ onSalesforceClick }) => {
             <span className="auth-loading">Loading...</span>
           ) : isAuthenticated ? (
             <div className="user-profile-container">
+              <div className="notification-bell-container">
+                <button
+                  className="btn-link notification-bell-toggle"
+                  onClick={toggleNotifications}
+                  aria-label="Notifications"
+                  aria-expanded={isNotificationsOpen}
+                  aria-haspopup="true"
+                >
+                  🔔
+                </button>
+                {isNotificationsOpen && (
+                  <div className="notification-bell-dropdown">
+                    <NotificationCenter />
+                  </div>
+                )}
+              </div>
               {user?.isSalesforceConnected ? (
                 <span className="salesforce-badge" title={user?.salesforceOrgName || 'Salesforce'}>
                   ✓ Salesforce

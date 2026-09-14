@@ -247,6 +247,27 @@
   align-items: center;
 }
 
+/* Notification Bell */
+.notification-bell-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notification-bell-toggle {
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.5rem;
+}
+
+.notification-bell-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  z-index: 1001;
+}
+
 .user-profile-button {
   display: flex;
   align-items: center;

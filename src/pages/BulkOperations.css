@@ -1,0 +1,199 @@
+.bulk-operations {
+  max-width: 900px;
+}
+
+.bulk-subtitle {
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+.bulk-form {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.bulk-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.bulk-form .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.bulk-form .filter-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.bulk-form select {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+}
+
+.bulk-records-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.85rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.bulk-records-input:focus,
+.bulk-form select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.bulk-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.bulk-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bulk-progress-bar {
+  flex: 1;
+  height: 10px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bulk-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: width 0.3s ease;
+}
+
+.bulk-progress-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  min-width: 3ch;
+}
+
+.bulk-results {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.bulk-results h3 {
+  margin: 0 0 1rem;
+  color: #1f2937;
+}
+
+.bulk-results dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1rem;
+  margin: 0 0 1.5rem;
+}
+
+.bulk-results dt {
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.bulk-results dd {
+  margin: 0;
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.bulk-jobs-history h2 {
+  font-size: 1.2rem;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.bulk-jobs-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bulk-jobs-table th,
+.bulk-jobs-table td {
+  padding: 0.7rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+  color: #1f2937;
+}
+
+.bulk-jobs-table th {
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.bulk-jobs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.bulk-status-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.bulk-status-badge.status-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.bulk-status-badge.status-failed,
+.bulk-status-badge.status-aborted {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.bulk-status-badge.status-in_progress {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+@media (max-width: 768px) {
+  .bulk-jobs-table {
+    display: block;
+    overflow-x: auto;
+  }
+}

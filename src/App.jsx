@@ -8,6 +8,9 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/layout/Footer';
 import { SalesforceConnect } from './components/salesforce/SalesforceConnect';
 import { OpportunitiesList } from './components/salesforce/OpportunitiesList';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { AdvancedSearch } from './components/AdvancedSearch';
+import BulkOperations from './pages/BulkOperations';
 import api from './services/api';
 import './styles/global.css';
 
@@ -15,6 +18,8 @@ import './styles/global.css';
  * App Component - Main application routing and layout
  * Integrates authentication, session management, and Salesforce OAuth
  * Day 3: Salesforce OAuth integration with opportunities management
+ * Day 6: Analytics dashboard, advanced search/export, bulk operations UI,
+ * and real-time notifications
  */
 
 function App() {
@@ -122,6 +127,32 @@ function App() {
             element={
               <ProtectedRoute>
                 <OpportunitiesList />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Analytics & Search - Day 6 Features */}
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <AnalyticsDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>
+                <AdvancedSearch />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bulk-operations"
+            element={
+              <ProtectedRoute>
+                <BulkOperations />
               </ProtectedRoute>
             }
           />

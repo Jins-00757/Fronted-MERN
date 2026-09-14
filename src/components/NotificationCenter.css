@@ -1,0 +1,115 @@
+/* Fronted-MERN/src/components/NotificationCenter.css */
+
+.notification-center {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  width: 340px;
+  max-width: 90vw;
+  max-height: 420px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.notification-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.connection-status {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.connection-status.connected {
+  color: #059669;
+}
+
+.connection-status.disconnected {
+  color: #dc2626;
+}
+
+.btn-small {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-small:hover {
+  background: #e5e7eb;
+}
+
+.notifications-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.empty-notifications {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.notification-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #1f2937;
+}
+
+.notification-message {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+}
+
+.notification-time {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-top: 0.3rem;
+}

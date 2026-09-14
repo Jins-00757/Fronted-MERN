@@ -1,7 +1,6 @@
 
 import  { useState } from 'react';
 import useSalesforceData from '../hooks/useSalesforceData';
-import api from '../services/api';
 import './AnalyticsDashboard.css';
 
 export const AnalyticsDashboard = () => {
@@ -9,22 +8,22 @@ export const AnalyticsDashboard = () => {
   const [selectedReport, setSelectedReport] = useState('health');
 
   const { data: healthReport, loading: healthLoading } = useSalesforceData(
-    `/api/analytics/pipeline-health?range=${dateRange}`,
+    `/analytics/pipeline-health?range=${dateRange}`,
     { autoRefresh: true, refreshInterval: 10 * 60 * 1000 }
   );
 
   const { data: forecast, loading: forecastLoading } = useSalesforceData(
-    '/api/analytics/forecast',
+    '/analytics/forecast',
     { autoRefresh: true, refreshInterval: 10 * 60 * 1000 }
   );
 
   const { data: risks, loading: risksLoading } = useSalesforceData(
-    '/api/analytics/risks',
+    '/analytics/risks',
     { autoRefresh: true, refreshInterval: 5 * 60 * 1000 }
   );
 
-  const { data: teamPerformance, loading: teamLoading } = useSalesforceData(
-    '/api/analytics/team-performance',
+  const { data: teamPerformance, loading: teamLoading, error: teamError } = useSalesforceData(
+    '/analytics/team-performance',
     { autoRefresh: true, refreshInterval: 10 * 60 * 1000 }
   );
 
@@ -84,7 +83,7 @@ export const AnalyticsDashboard = () => {
         <RisksReport data={risks} loading={risksLoading} />
       )}
       {selectedReport === 'team' && (
-        <TeamPerformanceReport data={teamPerformance} loading={teamLoading} />
+        <TeamPerformanceReport data={teamPerformance} loading={teamLoading} error={teamError} />
       )}
     </div>
   );
@@ -222,8 +221,15 @@ const RisksReport = ({ data, loading }) => {
   );
 };
 
-const TeamPerformanceReport = ({ data, loading }) => {
+const TeamPerformanceReport = ({ data, loading, error }) => {
   if (loading) return <div className="loading">Loading team data...</div>;
+  if (error) {
+    return (
+      <div className="empty-state">
+        Team performance is only available to managers and admins.
+      </div>
+    );
+  }
   if (!data || Object.keys(data).length === 0) {
     return <div className="empty-state">No team data</div>;
   }
@@ -244,7 +250,7 @@ const TeamPerformanceReport = ({ data, loading }) => {
         <tbody>
           {Object.entries(data).map(([repId, stats]) => (
             <tr key={repId}>
-              <td>{stats.totalDeals > 0 ? `Rep ${repId.substring(0, 8)}` : 'N/A'}</td>
+              <td>{stats.ownerName || `Rep ${repId.substring(0, 8)}`}</td>
               <td>{stats.totalDeals}</td>
               <td>${(stats.totalValue / 1000).toFixed(0)}K</td>
               <td>{stats.winRate}%</td>
