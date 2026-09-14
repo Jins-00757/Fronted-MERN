@@ -1,0 +1,488 @@
+/* Fronted-MERN/src/components/SaaSMetricsDashboard.css
+   Only the pieces AnalyticsDashboard.css doesn't already provide - imported
+   alongside it in SaaSMetricsDashboard.jsx to reuse .metric-card, .risk-card,
+   .bar-fill, .forecast-table, .loading/.empty-state, etc. Scoped under
+   .saas-metrics-dashboard wherever it overrides/extends a shared class, so
+   the original Analytics dashboard is never affected. */
+
+/* Tabs - icon + label alignment (Day 8) */
+.saas-metrics-dashboard .report-tabs .tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.saas-metrics-dashboard .report-tabs .tab:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.saas-metrics-dashboard .tab-icon {
+  flex-shrink: 0;
+}
+
+/* Report section header - refresh/export actions + last-updated */
+.report-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: -0.5rem;
+}
+
+.last-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
+.report-section-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  border-color: #c7cbe8;
+  color: #667eea;
+}
+
+.icon-btn:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.icon-spin {
+  animation: icon-spin 0.9s linear infinite;
+}
+
+@keyframes icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Insight banner */
+.insight-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.insight-banner svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.insight-banner--positive {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.insight-banner--warning {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.insight-banner--info {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+/* Section heading + tooltip row */
+.section-heading-row {
+  display: flex;
+  align-items: center;
+}
+
+.section-heading-row h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+/* KPI card icon chip + trend row (Day 8) */
+.saas-metrics-dashboard .metric-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.5rem;
+}
+
+.saas-metrics-dashboard .metric-card-top .metric-label {
+  margin-bottom: 0;
+}
+
+.saas-metrics-dashboard .metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.metric-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.metric-icon-chip--purple {
+  background: #eef0fd;
+  color: #667eea;
+}
+
+.metric-icon-chip--red {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.metric-icon-chip--green {
+  background: #dcfce7;
+  color: #10b981;
+}
+
+.metric-icon-chip--indigo {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+
+/* Methodology note + forecast row (carried over from Day 7) */
+.methodology-note {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.methodology-note strong {
+  color: var(--text-secondary);
+}
+
+.forecast-row td {
+  color: #667eea;
+  font-style: italic;
+}
+
+/* ARR trend chart */
+.arr-trend-chart {
+  width: 100%;
+  height: 220px;
+  overflow: visible;
+}
+
+.arr-chart-axis {
+  stroke: var(--border-color);
+  stroke-width: 1;
+}
+
+.arr-chart-line-actual {
+  fill: none;
+  stroke: #667eea;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.arr-chart-line-forecast {
+  fill: none;
+  stroke: #764ba2;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 6 5;
+}
+
+.arr-chart-dot-actual {
+  fill: #667eea;
+}
+
+.arr-chart-dot-forecast {
+  fill: #764ba2;
+}
+
+.arr-chart-label {
+  font-size: 10px;
+  fill: var(--text-faint);
+}
+
+/* Customer health */
+.health-score-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.health-score-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.health-score-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.health-score-ring {
+  flex-shrink: 0;
+}
+
+.health-score-ring-track {
+  fill: none;
+  stroke: var(--bg-hover);
+  stroke-width: 6;
+}
+
+.health-score-ring-value {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.health-score-ring--healthy .health-score-ring-value {
+  stroke: #10b981;
+}
+
+.health-score-ring--neutral .health-score-ring-value {
+  stroke: #f59e0b;
+}
+
+.health-score-ring--at-risk .health-score-ring-value {
+  stroke: #ef4444;
+}
+
+.health-score-ring-text {
+  font-size: 16px;
+  font-weight: 700;
+  fill: var(--text-primary);
+}
+
+.health-score-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.health-score-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.health-score-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.health-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.health-badge.healthy {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.health-badge.neutral {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.health-badge.at-risk {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.health-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.health-breakdown-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 48px;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.health-breakdown-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.health-breakdown-value {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+/* Risk / expansion card hover lift (Day 8) */
+.saas-metrics-dashboard .risk-card,
+.saas-metrics-dashboard .expansion-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.saas-metrics-dashboard .risk-card:hover,
+.saas-metrics-dashboard .expansion-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.saas-metrics-dashboard .risk-factor {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Expansion opportunities */
+.expansion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.expansion-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid #667eea;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.expansion-action {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bg-hover);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #667eea;
+}
+
+/* Empty state illustration (Day 8) */
+.saas-metrics-dashboard .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Skeleton loading (Day 8) */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border-color) 37%, var(--bg-hover) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (max-width: 768px) {
+  .health-score-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .health-breakdown-row {
+    grid-template-columns: 70px 1fr 40px;
+  }
+
+  .report-section-header {
+    align-items: flex-start;
+  }
+
+  .report-section-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .icon-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* Reduced motion (Day 8) - matches Auth.css/Navbar.css/Footer.css convention */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--bg-hover);
+  }
+
+  .icon-spin {
+    animation: none;
+  }
+
+  .health-score-ring-value {
+    transition: none;
+  }
+
+  .saas-metrics-dashboard .risk-card,
+  .saas-metrics-dashboard .expansion-card,
+  .health-score-card,
+  .icon-btn {
+    transition: none;
+  }
+
+  .saas-metrics-dashboard .risk-card:hover,
+  .saas-metrics-dashboard .expansion-card:hover,
+  .health-score-card:hover {
+    transform: none;
+  }
+}

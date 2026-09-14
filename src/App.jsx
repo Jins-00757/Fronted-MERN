@@ -11,6 +11,7 @@ import { Footer } from './components/layout/Footer';
 import { SalesforceConnect } from './components/salesforce/SalesforceConnect';
 import { OpportunitiesList } from './components/salesforce/OpportunitiesList';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { SaaSMetricsDashboard } from './components/SaaSMetricsDashboard';
 import { AdvancedSearch } from './components/AdvancedSearch';
 import BulkOperations from './pages/BulkOperations';
 import api from './services/api';
@@ -147,6 +148,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AnalyticsDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/saas-metrics"
+            element={
+              <ProtectedRoute>
+                <SaaSMetricsDashboard />
               </ProtectedRoute>
             }
           />
@@ -409,12 +418,12 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
 
       {/* Quick Info Section */}
       <div style={{
-        background: '#f9fafb',
+        background: 'var(--bg-subtle)',
         padding: '1.5rem',
         borderRadius: '8px',
-        border: '1px solid #e5e7eb'
+        border: '1px solid var(--border-color)'
       }}>
-        <h3 style={{ margin: 0, marginBottom: '1rem', color: '#1f2937', fontSize: '1.1rem' }}>
+        <h3 style={{ margin: 0, marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.1rem' }}>
           Profile Information
         </h3>
         <div style={{
@@ -423,25 +432,25 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
           gap: '1rem'
         }}>
           <div>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Email</p>
-            <p style={{ margin: 0, fontWeight: '600', color: '#1f2937' }}>{user?.email}</p>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Email</p>
+            <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-primary)' }}>{user?.email}</p>
           </div>
           <div>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Role</p>
-            <p style={{ margin: 0, fontWeight: '600', color: '#1f2937', textTransform: 'capitalize' }}>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Role</p>
+            <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-primary)', textTransform: 'capitalize' }}>
               {user?.role || 'User'}
             </p>
           </div>
           {user?.company && (
             <div>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Company</p>
-              <p style={{ margin: 0, fontWeight: '600', color: '#1f2937' }}>{user.company}</p>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Company</p>
+              <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-primary)' }}>{user.company}</p>
             </div>
           )}
           {user?.jobTitle && (
             <div>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Job Title</p>
-              <p style={{ margin: 0, fontWeight: '600', color: '#1f2937' }}>{user.jobTitle}</p>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Job Title</p>
+              <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-primary)' }}>{user.jobTitle}</p>
             </div>
           )}
         </div>

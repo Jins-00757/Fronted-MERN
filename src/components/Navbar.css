@@ -102,15 +102,21 @@
   }
 }
 
-/* Navigation Menu */
-.navbar-menu {
+/* Navigation Menu - Desktop: Dashboard + "More" dropdown (no horizontal
+   scroll strip - a crowded link list collapses into the dropdown instead of
+   ever threatening to overflow the page again). */
+.navbar-menu-desktop {
   display: flex;
-  gap: 0;
+  gap: 0.25rem;
   flex: 1;
+  min-width: 0;
   align-items: center;
-  padding: 0;
-  margin: 0;
-  list-style: none;
+}
+
+@media (max-width: 768px) {
+  .navbar-menu-desktop {
+    display: none;
+  }
 }
 
 .navbar-link {
@@ -123,15 +129,56 @@
   transition: background-color 0.2s;
   border-radius: 4px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .navbar-link:hover {
   background-color: var(--navbar-hover);
 }
 
+.navbar-link:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.more-menu-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.more-menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.more-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  background-color: var(--navbar-bg);
+  border: 1px solid var(--navbar-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1001;
+  overflow: hidden;
+  padding: 0.4rem 0;
+}
+
+/* Navigation Menu - Mobile: flat list inside the hamburger overlay */
+.navbar-menu {
+  display: none;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
 @media (max-width: 768px) {
-  .navbar-menu {
-    display: none;
+  .navbar-menu.active {
+    display: flex;
     flex-direction: column;
     position: absolute;
     top: 100%;
@@ -144,11 +191,7 @@
     width: 100%;
   }
 
-  .navbar-menu.active {
-    display: flex;
-  }
-
-  .navbar-link {
+  .navbar-menu .navbar-link {
     width: 100%;
     text-align: left;
     padding: 0.75rem 1rem;
@@ -251,6 +294,13 @@
 .notification-bell-toggle {
   font-size: 1.1rem;
   line-height: 1;
+  padding: 0.5rem;
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.5rem;
 }
 

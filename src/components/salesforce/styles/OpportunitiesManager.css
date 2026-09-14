@@ -12,13 +12,13 @@
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--border-color);
 }
 
 .manager-header h2 {
   margin: 0;
   font-size: 1.75rem;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .filters-panel {
@@ -27,9 +27,9 @@
   gap: 1rem;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: #f9fafb;
+  background: var(--bg-subtle);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
 }
 
 .filter-group {
@@ -40,7 +40,7 @@
 
 .filter-group label {
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -50,8 +50,8 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.9rem;
-  background: white;
-  color: #1f2937;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .filter-group select:focus,
@@ -62,10 +62,10 @@
 }
 
 .create-form {
-  background: white;
+  background: var(--bg-card);
   padding: 2rem;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   margin-bottom: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -78,7 +78,7 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
 }
 
 .form-group input,
@@ -90,8 +90,8 @@
   border-radius: 6px;
   font-size: 1rem;
   font-family: inherit;
-  color: #1f2937;
-  background: white;
+  color: var(--text-primary);
+  background: var(--bg-card);
 }
 
 .form-group input:focus,
@@ -145,24 +145,24 @@
 }
 
 .btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
   border: 1px solid #d1d5db;
 }
 
 .btn-secondary:hover {
-  background: #e5e7eb;
+  background: var(--border-color);
 }
 
 .btn-small {
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
 }
 
 .btn-small:hover {
-  background: #d1d5db;
+  background: var(--border-color);
 }
 
 .btn-success {
@@ -199,8 +199,8 @@
 }
 
 .opportunity-card {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -225,7 +225,7 @@
 .card-header h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #1f2937;
+  color: var(--text-primary);
   flex: 1;
 }
 
@@ -284,13 +284,13 @@
 
 .probability {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin-bottom: 0.5rem;
 }
 
 .close-date {
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: var(--text-faint);
 }
 
 .card-footer {
@@ -299,7 +299,7 @@
   flex-wrap: wrap;
   margin-top: auto;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-color);
 }
 
 .card-edit {
@@ -314,8 +314,8 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.9rem;
-  color: #1f2937;
-  background: white;
+  color: var(--text-primary);
+  background: var(--bg-card);
 }
 
 .edit-actions {
@@ -348,7 +348,7 @@
 .loading {
   text-align: center;
   padding: 3rem;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 1.1rem;
 }
 
@@ -368,7 +368,7 @@
 .no-data {
   text-align: center;
   padding: 2rem;
-  color: #9ca3af;
+  color: var(--text-faint);
   font-style: italic;
 }
 

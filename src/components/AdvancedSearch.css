@@ -1,8 +1,8 @@
 /* Fronted-MERN/src/components/AdvancedSearch.css */
 
 .advanced-search {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem;
   position: relative;
@@ -23,8 +23,8 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 1rem;
-  color: #1f2937;
-  background-color: #ffffff;
+  color: var(--text-primary);
+  background-color: var(--bg-card);
 }
 
 .search-input:focus {
@@ -39,8 +39,8 @@
   left: 0;
   right: 110px;
   margin-top: 0.25rem;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 20;
@@ -55,22 +55,22 @@
   padding: 0.6rem 0.9rem;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .suggestion-item:hover {
-  background: #f3f4f6;
+  background: var(--bg-hover);
 }
 
 .suggestion-type {
-  color: #9ca3af;
+  color: var(--text-faint);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
 .suggestion-value {
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .filters-grid {
@@ -89,7 +89,7 @@
 .filter-group label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
 }
 
 .filter-group input,
@@ -98,8 +98,8 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.85rem;
-  background: white;
-  color: #1f2937;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .filter-group input:focus,
@@ -119,8 +119,8 @@
   padding: 0.6rem 1.1rem;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -128,13 +128,13 @@
 }
 
 .export-options .btn-secondary:hover {
-  background: #e5e7eb;
+  background: var(--border-color);
 }
 
 .results-count {
   margin-top: 1.5rem;
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -146,7 +146,7 @@
 }
 
 .result-item {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 0.9rem 1.1rem;
 }
@@ -154,14 +154,14 @@
 .result-item h4 {
   margin: 0 0 0.4rem;
   font-size: 0.95rem;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .result-details {
   display: flex;
   gap: 1rem;
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 @media (max-width: 768px) {

@@ -3,13 +3,13 @@
 }
 
 .bulk-subtitle {
-  color: #6b7280;
+  color: var(--text-muted);
   margin-bottom: 2rem;
 }
 
 .bulk-form {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem;
   display: flex;
@@ -33,7 +33,7 @@
 .bulk-form .filter-group label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
 }
 
 .bulk-form select {
@@ -41,8 +41,8 @@
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.9rem;
-  background: white;
-  color: #1f2937;
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .bulk-records-input {
@@ -54,8 +54,8 @@
   font-size: 0.85rem;
   resize: vertical;
   box-sizing: border-box;
-  color: #1f2937;
-  background: white;
+  color: var(--text-primary);
+  background: var(--bg-card);
 }
 
 .bulk-records-input:focus,
@@ -82,7 +82,7 @@
 .bulk-progress-bar {
   flex: 1;
   height: 10px;
-  background: #f3f4f6;
+  background: var(--bg-hover);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -96,13 +96,13 @@
 .bulk-progress-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
   min-width: 3ch;
 }
 
 .bulk-results {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -110,7 +110,7 @@
 
 .bulk-results h3 {
   margin: 0 0 1rem;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .bulk-results dl {
@@ -121,28 +121,28 @@
 }
 
 .bulk-results dt {
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.85rem;
   font-weight: 600;
 }
 
 .bulk-results dd {
   margin: 0;
-  color: #1f2937;
+  color: var(--text-primary);
   font-size: 0.9rem;
 }
 
 .bulk-jobs-history h2 {
   font-size: 1.2rem;
-  color: #1f2937;
+  color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
 .bulk-jobs-table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -151,14 +151,14 @@
 .bulk-jobs-table td {
   padding: 0.7rem 1rem;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
   font-size: 0.85rem;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .bulk-jobs-table th {
-  background: #f9fafb;
-  color: #374151;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -174,8 +174,8 @@
   border-radius: 999px;
   font-weight: 600;
   font-size: 0.75rem;
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
 }
 
 .bulk-status-badge.status-completed {

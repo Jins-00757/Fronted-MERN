@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../context/useAuth';
+import { useTheme } from '../context/useTheme';
 import { useNavigate } from 'react-router-dom';
 import { NotificationCenter } from './NotificationCenter';
 import { Logo } from './ui/Logo';
+import { SunIcon, MoonIcon } from './ui/ThemeIcons';
 import './Navbar.css';
 
 // NotificationCenter owns its own useNotifications() WebSocket connection,
@@ -22,10 +24,22 @@ import './Navbar.css';
  */
 export const Navbar = ({ onSalesforceClick }) => {
   const { isAuthenticated, user, logout, isLoading, disconnectSalesforce } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+
+  const moreLinks = user?.isSalesforceConnected
+    ? [
+        { path: '/opportunities', label: 'Opportunities' },
+        { path: '/analytics', label: 'Analytics' },
+        { path: '/saas-metrics', label: 'SaaS Metrics' },
+        { path: '/search', label: 'Search' },
+        { path: '/bulk-operations', label: 'Bulk Operations' },
+      ]
+    : [];
 
   const handleLogout = useCallback(async () => {
     try {
@@ -47,10 +61,15 @@ export const Navbar = ({ onSalesforceClick }) => {
     navigate(path);
     setIsMobileMenuOpen(false);
     setIsDropdownOpen(false);
+    setIsMoreMenuOpen(false);
   }, [navigate]);
 
   const toggleDropdown = useCallback(() => {
     setIsDropdownOpen(prev => !prev);
+  }, []);
+
+  const toggleMoreMenu = useCallback(() => {
+    setIsMoreMenuOpen(prev => !prev);
   }, []);
 
   const toggleNotifications = useCallback(() => {
@@ -87,7 +106,49 @@ export const Navbar = ({ onSalesforceClick }) => {
           <span className="toggle-icon"></span>
         </button>
 
-        {/* Navigation Items */}
+        {/* Navigation Items - Desktop: Dashboard + "More" dropdown */}
+        {isAuthenticated && (
+          <div className="navbar-menu-desktop">
+            <button
+              className="navbar-link"
+              onClick={() => handleNavigation('/')}
+            >
+              Dashboard
+            </button>
+
+            {moreLinks.length > 0 && (
+              <div className="more-menu-container">
+                <button
+                  className="navbar-link more-menu-toggle"
+                  onClick={toggleMoreMenu}
+                  aria-label="More navigation options"
+                  aria-expanded={isMoreMenuOpen}
+                  aria-haspopup="menu"
+                >
+                  More
+                  <span className={`dropdown-arrow ${isMoreMenuOpen ? 'open' : ''}`}>▼</span>
+                </button>
+
+                {isMoreMenuOpen && (
+                  <div className="more-menu" role="menu">
+                    {moreLinks.map((link) => (
+                      <button
+                        key={link.path}
+                        className="dropdown-item"
+                        role="menuitem"
+                        onClick={() => handleNavigation(link.path)}
+                      >
+                        {link.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Navigation Items - Mobile: flat list inside the hamburger overlay */}
         <div className={`navbar-menu ${isMobileMenuOpen ? 'active' : ''}`}>
           {isAuthenticated && (
             <>
@@ -97,34 +158,15 @@ export const Navbar = ({ onSalesforceClick }) => {
               >
                 Dashboard
               </button>
-              {user?.isSalesforceConnected && (
-                <>
-                  <button
-                    className="navbar-link"
-                    onClick={() => handleNavigation('/opportunities')}
-                  >
-                    Opportunities
-                  </button>
-                  <button
-                    className="navbar-link"
-                    onClick={() => handleNavigation('/analytics')}
-                  >
-                    Analytics
-                  </button>
-                  <button
-                    className="navbar-link"
-                    onClick={() => handleNavigation('/search')}
-                  >
-                    Search
-                  </button>
-                  <button
-                    className="navbar-link"
-                    onClick={() => handleNavigation('/bulk-operations')}
-                  >
-                    Bulk Operations
-                  </button>
-                </>
-              )}
+              {moreLinks.map((link) => (
+                <button
+                  key={link.path}
+                  className="navbar-link"
+                  onClick={() => handleNavigation(link.path)}
+                >
+                  {link.label}
+                </button>
+              ))}
             </>
           )}
         </div>
@@ -135,6 +177,14 @@ export const Navbar = ({ onSalesforceClick }) => {
             <span className="auth-loading">Loading...</span>
           ) : isAuthenticated ? (
             <div className="user-profile-container">
+              <button
+                className="btn-link theme-toggle-btn"
+                onClick={toggleTheme}
+                aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+              </button>
               <div className="notification-bell-container">
                 <button
                   className="btn-link notification-bell-toggle"

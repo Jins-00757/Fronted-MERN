@@ -1,8 +1,8 @@
 /* Fronted-MERN/src/components/NotificationCenter.css */
 
 .notification-center {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   width: 340px;
   max-width: 90vw;
@@ -18,14 +18,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.9rem 1.1rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
 .notification-header h3 {
   margin: 0;
   font-size: 0.95rem;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .header-actions {
@@ -37,7 +37,7 @@
 .connection-status {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: var(--text-faint);
 }
 
 .connection-status.connected {
@@ -52,15 +52,15 @@
   padding: 0.3rem 0.6rem;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
 }
 
 .btn-small:hover {
-  background: #e5e7eb;
+  background: var(--border-color);
 }
 
 .notifications-list {
@@ -71,7 +71,7 @@
 .empty-notifications {
   padding: 2rem 1rem;
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-faint);
   font-size: 0.9rem;
 }
 
@@ -79,7 +79,7 @@
   display: flex;
   gap: 0.75rem;
   padding: 0.85rem 1.1rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--bg-hover);
 }
 
 .notification-item:last-child {
@@ -99,17 +99,17 @@
 .notification-title {
   font-weight: 600;
   font-size: 0.85rem;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .notification-message {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin-top: 0.15rem;
 }
 
 .notification-time {
   font-size: 0.7rem;
-  color: #9ca3af;
+  color: var(--text-faint);
   margin-top: 0.3rem;
 }

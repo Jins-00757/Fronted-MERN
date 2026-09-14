@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthProvider.jsx'
+import { ThemeProvider } from './context/ThemeProvider.jsx'
 
 /**
  * Main Entry Point - React Router v7 Future Flags Enabled
@@ -17,9 +18,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         v7_relativeSplatPath: true   // Enable relative route resolution in splat routes
       }}
     >
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>,
 )
