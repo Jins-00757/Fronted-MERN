@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useAuth } from '../context/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login() {
-  const { login, loginWithSalesforce } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,10 +23,6 @@ export default function Login() {
     } else {
       setError(result?.error || 'Login failed');
     }
-  };
-
-  const handleSalesforceLogin = async () => {
-    await loginWithSalesforce();
   };
 
   return (
@@ -113,30 +109,13 @@ export default function Login() {
       </form>
 
       <div style={{ textAlign: 'center', margin: '16px 0' }}>
-        <span style={{ fontSize: '14px' }}>
+        <span style={{ fontSize: '14px', color: '#666' }}>
           Don't have an account?{' '}
-          <a href="/signup" style={{ color: '#007bff', textDecoration: 'none' }}>
+          <Link to="/signup" style={{ color: '#007bff', textDecoration: 'none' }}>
             Sign up
-          </a>
+          </Link>
         </span>
       </div>
-
-      <button
-        onClick={handleSalesforceLogin}
-        style={{
-          width: '100%',
-          padding: '10px',
-          backgroundColor: '#f0f0f0',
-          color: '#333',
-          border: '1px solid #ccc',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '16px',
-          marginTop: '10px'
-        }}
-      >
-        Sign in with Salesforce
-      </button>
     </div>
   );
 }

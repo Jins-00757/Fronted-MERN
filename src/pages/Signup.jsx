@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export const Signup = () => {
   const { signup } = useAuth();
@@ -170,9 +170,9 @@ export const Signup = () => {
       <div style={{ textAlign: 'center', margin: '16px 0' }}>
         <span style={{ fontSize: '14px' }}>
           Already have an account?{' '}
-          <a href="/login" style={{ color: '#007bff', textDecoration: 'none' }}>
+          <Link to="/login" style={{ color: '#007bff', textDecoration: 'none' }}>
             Login
-          </a>
+          </Link>
         </span>
       </div>
     </div>

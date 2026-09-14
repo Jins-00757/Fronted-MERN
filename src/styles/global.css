@@ -234,6 +234,7 @@ a:hover {
 @media (prefers-color-scheme: dark) {
   body {
     background-color: var(--bg-dark);
+    color: var(--text-light);
   }
 }
 
