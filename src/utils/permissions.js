@@ -12,3 +12,16 @@ const ELEVATED_ROLES = new Set(['admin', 'manager']);
 export const isElevatedRole = (role) => ELEVATED_ROLES.has((role || '').toLowerCase());
 
 export const canManageSalesforceRecords = (user) => isElevatedRole(user?.role);
+
+/**
+ * Display label for the RBAC `role` enum - shared by ProfileCard and
+ * Login's post-signin confirmation so both read from one definition
+ * instead of drifting apart.
+ */
+export const ROLE_LABELS = {
+  admin: 'Administrator',
+  manager: 'Manager',
+  user: 'User',
+};
+
+export const roleLabel = (role) => ROLE_LABELS[(role || '').toLowerCase()] || role || 'User';

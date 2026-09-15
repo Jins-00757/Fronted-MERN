@@ -6,7 +6,16 @@ import { useNavigate } from 'react-router-dom';
 import { NotificationCenter } from './NotificationCenter';
 import { Logo } from './ui/Logo';
 import { SunIcon, MoonIcon } from './ui/ThemeIcons';
-import { SearchIcon } from './ui/DashboardIcons';
+import {
+  SearchIcon,
+  UsersIcon,
+  BriefcaseIcon,
+  ListIcon,
+  MapPinIcon,
+  TrendingUpIcon,
+  LayersIcon,
+  GridIcon,
+} from './ui/DashboardIcons';
 import { canManageSalesforceRecords } from '../utils/permissions';
 import './Navbar.css';
 
@@ -111,20 +120,52 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
-  // Bulk Operations mutates Salesforce data at scale and is restricted to
-  // manager/admin on the backend (see salesforce.routes.js) - only show the
-  // link to roles that can actually use it.
-  const moreLinks = user?.isSalesforceConnected
+  // Grouped and ordered to mirror the actual sales process rather than
+  // alphabetically/by when each feature happened to ship: a lead moves
+  // through Leads -> Opportunities -> Contracts, with Map alongside them as
+  // a territory/account view over that same pipeline data. Insights (report
+  // on the pipeline) and Tools (cross-cutting utilities) come after the
+  // operational stages, and Admin - Bulk Operations mutates Salesforce data
+  // at scale and is restricted to manager/admin on the backend (see
+  // salesforce.routes.js) - is last and only shown to roles that can
+  // actually use it.
+  const moreLinkGroups = user?.isSalesforceConnected
     ? [
-        { path: '/opportunities', label: 'Opportunities' },
-        { path: '/leads', label: 'Leads' },
-        { path: '/contracts', label: 'Contracts' },
-        { path: '/analytics', label: 'Analytics' },
-        { path: '/saas-metrics', label: 'SaaS Metrics' },
-        { path: '/search', label: 'Search' },
-        ...(canManageSalesforceRecords(user) ? [{ path: '/bulk-operations', label: 'Bulk Operations' }] : []),
+        {
+          label: 'Pipeline',
+          links: [
+            { path: '/leads', label: 'Leads', icon: UsersIcon },
+            { path: '/opportunities', label: 'Opportunities', icon: BriefcaseIcon },
+            { path: '/contracts', label: 'Contracts', icon: ListIcon },
+            { path: '/map', label: 'Map', icon: MapPinIcon },
+          ],
+        },
+        {
+          label: 'Insights',
+          links: [
+            { path: '/analytics', label: 'Analytics', icon: TrendingUpIcon },
+            { path: '/saas-metrics', label: 'SaaS Metrics', icon: LayersIcon },
+          ],
+        },
+        {
+          label: 'Tools',
+          links: [{ path: '/search', label: 'Search', icon: SearchIcon }],
+        },
+        ...(canManageSalesforceRecords(user)
+          ? [
+              {
+                label: 'Admin',
+                links: [{ path: '/bulk-operations', label: 'Bulk Operations', icon: GridIcon }],
+              },
+            ]
+          : []),
       ]
     : [];
+
+  // Flat form for callers that just need "is there anything to show" or a
+  // plain list (the mobile hamburger menu keeps a single flat list rather
+  // than repeating desktop's section labels, to stay compact on a phone).
+  const moreLinks = moreLinkGroups.flatMap((group) => group.links);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -216,15 +257,22 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
 
                 {isMoreMenuOpen && (
                   <div className="more-menu" role="menu">
-                    {moreLinks.map((link) => (
-                      <button
-                        key={link.path}
-                        className="dropdown-item"
-                        role="menuitem"
-                        onClick={() => handleNavigation(link.path)}
-                      >
-                        {link.label}
-                      </button>
+                    {moreLinkGroups.map((group, groupIndex) => (
+                      <div key={group.label}>
+                        {groupIndex > 0 && <div className="dropdown-divider" />}
+                        <div className="dropdown-section-label">{group.label}</div>
+                        {group.links.map((link) => (
+                          <button
+                            key={link.path}
+                            className="dropdown-item"
+                            role="menuitem"
+                            onClick={() => handleNavigation(link.path)}
+                          >
+                            <link.icon width={16} height={16} />
+                            {link.label}
+                          </button>
+                        ))}
+                      </div>
                     ))}
                   </div>
                 )}
@@ -246,9 +294,10 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
               {moreLinks.map((link) => (
                 <button
                   key={link.path}
-                  className="navbar-link"
+                  className="navbar-link navbar-link-icon"
                   onClick={() => handleNavigation(link.path)}
                 >
+                  <link.icon width={16} height={16} />
                   {link.label}
                 </button>
               ))}
@@ -326,6 +375,16 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
                     <div className="dropdown-name">{user?.name}</div>
                     <div className="dropdown-email">{user?.email}</div>
                   </div>
+
+                  <div className="dropdown-divider"></div>
+
+                  <button
+                    className="dropdown-item"
+                    onClick={() => handleNavigation('/profile')}
+                    role="menuitem"
+                  >
+                    👤 My Profile
+                  </button>
 
                   <div className="dropdown-divider"></div>
 

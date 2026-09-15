@@ -12,14 +12,8 @@ import {
 } from './ui/DashboardIcons';
 import { useAuth } from '../context/useAuth';
 import { useToast } from '../context/useToast';
-import { TwoFactorSettings } from './TwoFactorSettings';
+import { roleLabel as getRoleLabel } from '../utils/permissions';
 import './ProfileCard.css';
-
-const ROLE_LABELS = {
-  admin: 'Administrator',
-  manager: 'Manager',
-  user: 'User',
-};
 
 const formatDate = (value) => {
   if (!value) return null;
@@ -82,7 +76,7 @@ export const ProfileCard = ({ user, onConnectSalesforce }) => {
 
   const initial = user.name?.trim()?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U';
   const roleKey = (user.role || 'user').toLowerCase();
-  const roleLabel = ROLE_LABELS[roleKey] || (user.role ? user.role : 'User');
+  const roleLabel = getRoleLabel(user.role);
   const memberSince = formatDate(user.createdAt);
   const lastLogin = formatDate(user.lastLogin);
   const sfConnectedDate = formatDate(user.salesforceConnectedAt);
@@ -159,10 +153,6 @@ export const ProfileCard = ({ user, onConnectSalesforce }) => {
           </button>
         )}
       </div>
-
-      <div className="profile-divider" />
-
-      <TwoFactorSettings user={user} />
     </motion.div>
   );
 };

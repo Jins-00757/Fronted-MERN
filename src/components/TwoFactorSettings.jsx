@@ -65,13 +65,12 @@ export const TwoFactorSettings = ({ user }) => {
     }
   }, [setupTwoFactor, toast]);
 
-  const handleConfirmSetup = useCallback(
-    async (e) => {
-      e.preventDefault();
+  const submitSetupCode = useCallback(
+    async (code) => {
       setIsBusy(true);
       setFormError('');
 
-      const result = await confirmTwoFactorSetup(setupCode);
+      const result = await confirmTwoFactorSetup(code);
       setIsBusy(false);
 
       if (result.success) {
@@ -81,7 +80,30 @@ export const TwoFactorSettings = ({ user }) => {
         setFormError(result.error || 'Invalid verification code');
       }
     },
-    [confirmTwoFactorSetup, setupCode]
+    [confirmTwoFactorSetup]
+  );
+
+  const handleConfirmSetup = useCallback(
+    (e) => {
+      e.preventDefault();
+      submitSetupCode(setupCode);
+    },
+    [submitSetupCode, setupCode]
+  );
+
+  // Same reasoning as Login.jsx's handler: strips whitespace an
+  // authenticator app's own code display may include (some group the 6
+  // digits as "123 456"), and auto-submits once all 6 digits are in so
+  // there's no extra click before the code might rotate.
+  const handleSetupCodeChange = useCallback(
+    (e) => {
+      const cleaned = e.currentTarget.value.replace(/\D/g, '').slice(0, 6);
+      setSetupCode(cleaned);
+      if (cleaned.length === 6 && !isBusy) {
+        submitSetupCode(cleaned);
+      }
+    },
+    [isBusy, submitSetupCode]
   );
 
   const handleDisable = useCallback(
@@ -189,7 +211,7 @@ export const TwoFactorSettings = ({ user }) => {
             inputMode="numeric"
             placeholder="123456"
             value={setupCode}
-            onChange={(e) => setSetupCode(e.currentTarget.value)}
+            onChange={handleSetupCodeChange}
             autoFocus
             required
           />

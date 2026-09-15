@@ -4,11 +4,14 @@ import { useAuth } from '../context/useAuth';
 import { useNavigate, Link } from 'react-router-dom';
 import { Logo } from '../components/ui/Logo';
 import { MailIcon, LockIcon, EyeIcon, EyeOffIcon, AlertIcon } from '../components/ui/AuthIcons';
+import { useToast } from '../context/useToast';
+import { roleLabel } from '../utils/permissions';
 import './Auth.css';
 
 export default function Login() {
   const { login, verifyTwoFactor } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +24,13 @@ export default function Login() {
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [useBackupCode, setUseBackupCode] = useState(false);
 
+  // Role display confirmation - a quick "who am I signed in as" toast so
+  // the role picked at signup (or assigned since) is visibly confirmed
+  // right at login, not just buried in Profile.
+  const showWelcomeToast = (user) => {
+    toast.success(`Welcome back, ${user?.name || 'there'} — signed in as ${roleLabel(user?.role)}`);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -30,6 +40,7 @@ export default function Login() {
     setIsLoading(false);
 
     if (result?.success) {
+      showWelcomeToast(result.user);
       navigate('/');
     } else if (result?.requiresTwoFactor) {
       setRequiresTwoFactor(true);
@@ -38,20 +49,46 @@ export default function Login() {
     }
   };
 
-  const handleVerifyTwoFactor = async (e) => {
-    e.preventDefault();
+  const submitTwoFactorCode = async (code) => {
     setError('');
     setIsLoading(true);
 
-    const result = await verifyTwoFactor(
-      useBackupCode ? { backupCode: twoFactorCode } : { token: twoFactorCode }
-    );
+    const result = await verifyTwoFactor(useBackupCode ? { backupCode: code } : { token: code });
     setIsLoading(false);
 
     if (result?.success) {
+      showWelcomeToast(result.user);
       navigate('/');
     } else {
       setError(result?.error || 'Invalid verification code');
+    }
+  };
+
+  const handleVerifyTwoFactor = (e) => {
+    e.preventDefault();
+    submitTwoFactorCode(twoFactorCode);
+  };
+
+  // Sanitizes as you type/paste rather than requiring exactly-clean input:
+  // authenticator apps often display a TOTP code as two groups of 3 digits
+  // with a space between them (e.g. "216 662"), and a user who copies that
+  // display text would otherwise paste the space right along with it -
+  // silently failing verification even though the code was correct. Also
+  // auto-submits once a full 6-digit code is entered, so there's no extra
+  // click to make before the code (only valid for ~30-90s) might rotate.
+  const handleTwoFactorCodeChange = (e) => {
+    const raw = e.currentTarget.value;
+
+    if (useBackupCode) {
+      const cleaned = raw.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 11);
+      setTwoFactorCode(cleaned);
+      return;
+    }
+
+    const cleaned = raw.replace(/\D/g, '').slice(0, 6);
+    setTwoFactorCode(cleaned);
+    if (cleaned.length === 6 && !isLoading) {
+      submitTwoFactorCode(cleaned);
     }
   };
 
@@ -118,7 +155,7 @@ export default function Login() {
                     inputMode={useBackupCode ? 'text' : 'numeric'}
                     placeholder={useBackupCode ? 'XXXXX-XXXXX' : '123456'}
                     value={twoFactorCode}
-                    onChange={(e) => setTwoFactorCode(e.currentTarget.value)}
+                    onChange={handleTwoFactorCodeChange}
                     autoComplete="one-time-code"
                     autoFocus
                     required

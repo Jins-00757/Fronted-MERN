@@ -15,17 +15,19 @@ import { SalesforceConnect } from './components/salesforce/SalesforceConnect';
 import { OpportunitiesList } from './components/salesforce/OpportunitiesList';
 import { LeadsBoard } from './components/salesforce/LeadsBoard';
 import { ContractsView } from './components/salesforce/ContractsView';
+import { AccountsMap } from './components/salesforce/AccountsMap';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { SaaSMetricsDashboard } from './components/SaaSMetricsDashboard';
 import { AdvancedSearch } from './components/AdvancedSearch';
 import BulkOperations from './pages/BulkOperations';
+import { Profile } from './pages/Profile';
 import api from './services/api';
 import { MetricCard } from './components/ui/ReportWidgets';
 import { gridVariants } from './components/ui/reportWidgetUtils';
-import { BriefcaseIcon, CheckCircleIcon, DollarIcon, ListIcon } from './components/ui/DashboardIcons';
+import { BriefcaseIcon, CheckCircleIcon, DollarIcon, ListIcon, UsersIcon, TrendingUpIcon } from './components/ui/DashboardIcons';
+import { isElevatedRole } from './utils/permissions';
 import { CommandPalette } from './components/ui/CommandPalette';
 import { GlobalActivityToaster } from './components/GlobalActivityToaster';
-import { ProfileCard } from './components/ProfileCard';
 import { downloadFileFromLink } from './utils/secureDownload';
 import './components/AnalyticsDashboard.css';
 import './components/SaaSMetricsDashboard.css';
@@ -180,6 +182,15 @@ function App() {
             }
           />
 
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile onConnectSalesforce={() => setShowSalesforceModal(true)} />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Opportunities Route - Day 3 Feature */}
           <Route
             path="/opportunities"
@@ -241,6 +252,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/map"
+            element={
+              <ProtectedRoute>
+                <AccountsMap />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Catch all - redirect to home or login */}
           <Route
@@ -274,6 +293,48 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
   const toast = useToast();
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
+
+  // Role-aware dashboard section: manager/admin get a live team summary
+  // (their own team for a manager, org-wide by default for admin - see
+  // AnalyticsService.resolveTeamOwnerIds), a plain 'user' sees the
+  // Dashboard exactly as it looks today with nothing added or removed.
+  const showTeamSnapshot = isElevatedRole(user?.role);
+  const [teamSnapshot, setTeamSnapshot] = useState(null);
+  const [teamSnapshotLoading, setTeamSnapshotLoading] = useState(false);
+
+  useEffect(() => {
+    if (!showTeamSnapshot || !salesforceConnected) return undefined;
+
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount loading flag, not derivable from props/state
+    setTeamSnapshotLoading(true);
+
+    api.get('/analytics/team-performance')
+      .then((res) => {
+        if (cancelled || !res.data.success) return;
+
+        const reps = Object.values(res.data.data || {});
+        const combinedPipeline = reps.reduce((sum, rep) => sum + (rep.totalValue || 0), 0);
+        const topRep = [...reps].sort((a, b) => b.totalValue - a.totalValue)[0];
+
+        setTeamSnapshot({
+          repCount: reps.length,
+          combinedPipeline,
+          topRepName: topRep?.ownerName || null,
+        });
+      })
+      .catch((error) => {
+        console.error('Error fetching team snapshot:', error);
+        if (!cancelled) setTeamSnapshot(null);
+      })
+      .finally(() => {
+        if (!cancelled) setTeamSnapshotLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showTeamSnapshot, salesforceConnected]);
 
   useEffect(() => {
     // Nothing to fetch when disconnected - the JSX below only reads `stats`
@@ -513,11 +574,59 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
         />
       </motion.div>
 
-      {/* Profile Information */}
-      <h2 style={{ margin: 0, marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-primary)' }}>
-        Profile Information
-      </h2>
-      <ProfileCard user={user} onConnectSalesforce={!salesforceConnected ? onSalesforceConnect : undefined} />
+      {showTeamSnapshot && (
+        <>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            marginBottom: '1rem',
+          }}>
+            <h2 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Team Snapshot</h2>
+            <Link to="/analytics" style={{ fontSize: '0.85rem' }}>View full report →</Link>
+          </div>
+          {salesforceConnected ? (
+            <motion.div
+              className="report-metrics"
+              variants={gridVariants}
+              initial="hidden"
+              animate="show"
+              style={{ marginBottom: '2rem' }}
+            >
+              <MetricCard
+                label="Reps Tracked"
+                icon={UsersIcon}
+                tone="indigo"
+                numericValue={teamSnapshot?.repCount ?? 0}
+                format={(n) => Math.round(n)}
+                footer={teamSnapshotLoading ? 'Loading from Salesforce...' : 'On your team'}
+              />
+              <MetricCard
+                label="Combined Pipeline"
+                icon={DollarIcon}
+                tone="purple"
+                numericValue={teamSnapshot?.combinedPipeline ?? 0}
+                format={(n) => `$${Math.round(n).toLocaleString()}`}
+                footer={teamSnapshotLoading ? 'Loading from Salesforce...' : 'Across the team'}
+              />
+              <MetricCard
+                label="Top Performer"
+                icon={TrendingUpIcon}
+                tone="green"
+                numericValue={0}
+                format={() => teamSnapshot?.topRepName || '—'}
+                footer={teamSnapshotLoading ? 'Loading from Salesforce...' : 'By pipeline value'}
+              />
+            </motion.div>
+          ) : (
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>
+              Connect Salesforce to see your team's pipeline.
+            </p>
+          )}
+        </>
+      )}
     </div>
   );
 }

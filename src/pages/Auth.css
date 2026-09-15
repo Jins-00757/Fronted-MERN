@@ -373,3 +373,144 @@
     animation: none;
   }
 }
+
+/* Signup wizard */
+.signup-step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.signup-step-dot {
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.signup-step-dot.done {
+  background-color: #764ba2;
+}
+
+.signup-step-dot.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.role-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.role-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--bg-card);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.role-card:hover {
+  border-color: #a5b4fc;
+}
+
+.role-card.selected {
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+}
+
+.role-card-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.role-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.territory-select {
+  cursor: pointer;
+}
+
+.signup-review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--bg-card);
+}
+
+.signup-review-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: 0.88rem;
+}
+
+.signup-review-row span {
+  color: var(--text-muted);
+}
+
+.signup-review-row strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word;
+}
+
+.signup-step-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.signup-step-actions .auth-submit {
+  margin-top: 0;
+}
+
+.auth-btn-secondary {
+  flex-shrink: 0;
+  padding: 0.8rem 1.1rem;
+  border: 1.5px solid var(--border-color);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.auth-btn-secondary:hover:not(:disabled) {
+  border-color: #a5b4fc;
+  background-color: var(--bg-hover);
+}
+
+.auth-btn-secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 480px) {
+  .signup-review-row {
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .signup-review-row strong {
+    text-align: left;
+  }
+}

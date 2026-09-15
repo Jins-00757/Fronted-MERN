@@ -66,9 +66,18 @@ export const LeadsBoard = () => {
     setIsLoading(true);
     setError(null);
 
+    // tierFilter (Hot/Warm/Cold) is deliberately NOT sent to the backend as
+    // `rating` - that used to query Salesforce's native Lead.Rating
+    // picklist, a manual field almost no lead actually has set (it's only
+    // ever written by the separate per-lead "sync score to Salesforce"
+    // action below). The tier chips' own counts are computed from
+    // scoreData.tier, this app's computed lead score - so filtering by the
+    // Salesforce field instead of that same computed tier meant clicking a
+    // chip with a non-zero count reliably returned zero leads. Filtered
+    // client-side instead, in visibleLeads below, against the same
+    // scoreData.tier the counts already use.
     const params = new URLSearchParams({ limit: '100' });
     if (statusFilter) params.set('status', statusFilter);
-    if (tierFilter) params.set('rating', tierFilter);
     if (search) params.set('search', search);
 
     api.get(`/salesforce/leads?${params.toString()}`)
@@ -91,7 +100,7 @@ export const LeadsBoard = () => {
       });
 
     return () => { cancelled = true; };
-  }, [statusFilter, tierFilter, search, refreshKey]);
+  }, [statusFilter, search, refreshKey]);
 
   useEffect(() => {
     api.get('/salesforce/leads/meta/statuses')
@@ -106,6 +115,14 @@ export const LeadsBoard = () => {
     leads.forEach((l) => { counts[l.scoreData?.tier] = (counts[l.scoreData?.tier] || 0) + 1; });
     return counts;
   }, [leads]);
+
+  // The tier chips filter client-side against the same scoreData.tier
+  // tierCounts is computed from - see the fetch effect above for why this
+  // isn't sent to the backend as a query param.
+  const visibleLeads = useMemo(
+    () => (tierFilter ? leads.filter((l) => l.scoreData?.tier === tierFilter) : leads),
+    [leads, tierFilter]
+  );
 
   const openStatuses = useMemo(() => statuses.filter((s) => !s.isConverted), [statuses]);
 
@@ -271,17 +288,17 @@ export const LeadsBoard = () => {
 
       {!error && isLoading && <div className="leads-loading">Loading leads...</div>}
 
-      {!error && !isLoading && leads.length === 0 && (
+      {!error && !isLoading && visibleLeads.length === 0 && (
         <div className="leads-empty">
           <EmptyBoxIllustration />
           <p>No leads match these filters.</p>
         </div>
       )}
 
-      {!error && !isLoading && leads.length > 0 && (
+      {!error && !isLoading && visibleLeads.length > 0 && (
         <motion.div className="leads-grid" layout>
           <AnimatePresence initial={false}>
-            {leads.map((lead) => (
+            {visibleLeads.map((lead) => (
               <motion.div
                 key={lead.Id}
                 className={`lead-card ${selectedIds.has(lead.Id) ? 'selected' : ''}`}

@@ -142,6 +142,22 @@ export const LayersIcon = (props) => (
   </svg>
 );
 
+export const MapPinIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M12 21s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12Z" />
+    <circle cx="12" cy="9" r="2.5" />
+  </svg>
+);
+
+export const GridIcon = (props) => (
+  <svg {...base} {...props}>
+    <rect x="3" y="3" width="8" height="8" rx="1.5" />
+    <rect x="13" y="3" width="8" height="8" rx="1.5" />
+    <rect x="3" y="13" width="8" height="8" rx="1.5" />
+    <rect x="13" y="13" width="8" height="8" rx="1.5" />
+  </svg>
+);
+
 export const LogoutIcon = (props) => (
   <svg {...base} {...props}>
     <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />

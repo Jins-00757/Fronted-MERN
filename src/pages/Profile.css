@@ -1,0 +1,12 @@
+.profile-page-header {
+  margin-bottom: 1.25rem;
+}
+
+.profile-page-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+}
+
+.profile-page .profile-card {
+  max-width: 720px;
+}
