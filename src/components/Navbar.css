@@ -96,7 +96,19 @@
   display: block;
 }
 
-@media (max-width: 768px) {
+/* This breakpoint (and the two others toggling .navbar-menu-desktop /
+   .navbar-menu below) must all move together - they switch between the
+   inline "Dashboard + More" nav and the hamburger menu as one unit. 1024px
+   rather than 768px: with Salesforce connected, .navbar-auth (theme
+   toggle + notification bell + connection badge + full user-profile
+   button) alone measures ~415px, which left the inline nav only ~250-300px
+   to work with below ~1000px - not enough room for "Dashboard" + "More",
+   so "More" visually overlapped the theme toggle button instead of wrapping
+   (flex `min-width: 0` lets a flex item shrink below its content's natural
+   size, so the overflow renders on top of the next item rather than
+   reflowing). Confirmed no overlap at any width once both nav modes switch
+   together above 1024px. */
+@media (max-width: 1024px) {
   .navbar-toggle {
     display: flex;
   }
@@ -113,7 +125,7 @@
   align-items: center;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .navbar-menu-desktop {
     display: none;
   }
@@ -176,7 +188,7 @@
   list-style: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .navbar-menu.active {
     display: flex;
     flex-direction: column;
@@ -297,7 +309,8 @@
   padding: 0.5rem;
 }
 
-.theme-toggle-btn {
+.theme-toggle-btn,
+.cmdk-trigger-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;

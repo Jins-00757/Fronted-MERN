@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSalesforceData from '../hooks/useSalesforceData';
-import { useCountUp } from '../hooks/useCountUp';
 import { toCsv, downloadCsv, todayStamp } from '../utils/csvExport';
 import { InfoTooltip } from './ui/InfoTooltip';
 import {
@@ -9,15 +8,19 @@ import {
   ChurnIcon,
   HealthIcon,
   ExpansionIcon,
-  RefreshIcon,
-  DownloadIcon,
-  ClockIcon,
   AlertTriangleIcon,
   CheckCircleIcon,
   TrendingUpIcon,
   TrendingDownIcon,
-  EmptyBoxIllustration,
 } from './ui/DashboardIcons';
+import { gridVariants } from './ui/reportWidgetUtils';
+import {
+  MetricCard,
+  ReportSectionHeader,
+  InsightBanner,
+  EmptyState,
+  SkeletonReport,
+} from './ui/ReportWidgets';
 import './AnalyticsDashboard.css';
 import './SaaSMetricsDashboard.css';
 
@@ -27,16 +30,6 @@ const TABS = [
   { id: 'health', label: 'Customer Health', icon: HealthIcon },
   { id: 'expansion', label: 'Expansion Opportunities', icon: ExpansionIcon },
 ];
-
-const gridVariants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06 } },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-};
 
 /**
  * SaaSMetricsDashboard - Day 7/8: SaaS/Technology industry vertical
@@ -120,130 +113,6 @@ const formatCurrency = (value) => {
 
 const formatPercent = (value) => `${value >= 0 ? '+' : ''}${(value || 0).toFixed(2)}%`;
 const formatInt = (value) => Math.round(value || 0);
-
-const timeAgo = (date) => {
-  if (!date) return null;
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 10) return 'just now';
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
-};
-
-const CountUpValue = ({ value, format = (n) => n }) => {
-  const current = useCountUp(value, { duration: 800 });
-  return format(current);
-};
-
-const MetricCard = ({ label, numericValue, format = (n) => n, trend, icon: Icon, tone = 'purple' }) => (
-  <motion.div className="metric-card" variants={cardVariants}>
-    <div className="metric-card-top">
-      {Icon && (
-        <span className={`metric-icon-chip metric-icon-chip--${tone}`}>
-          <Icon width={16} height={16} />
-        </span>
-      )}
-      <div className="metric-label">{label}</div>
-    </div>
-    <div className="metric-value">
-      <CountUpValue value={numericValue} format={format} />
-    </div>
-    {trend && (
-      <div className={`metric-trend ${trend}`}>
-        {trend === 'up' ? <TrendingUpIcon width={14} height={14} /> : <TrendingDownIcon width={14} height={14} />}
-        Trending {trend}
-      </div>
-    )}
-  </motion.div>
-);
-
-const ReportSectionHeader = ({ onRefresh, loading, onExport, exportLabel, lastFetched }) => (
-  <div className="report-section-header">
-    {lastFetched && (
-      <span className="last-updated">
-        <ClockIcon width={14} height={14} />
-        Updated {timeAgo(lastFetched)}
-      </span>
-    )}
-    <div className="report-section-actions">
-      <motion.button
-        type="button"
-        className="icon-btn"
-        onClick={onRefresh}
-        disabled={loading}
-        whileHover={!loading ? { scale: 1.03 } : undefined}
-        whileTap={!loading ? { scale: 0.97 } : undefined}
-        aria-label={`Refresh ${exportLabel} data`}
-      >
-        <RefreshIcon className={loading ? 'icon-spin' : ''} />
-        Refresh
-      </motion.button>
-      <motion.button
-        type="button"
-        className="icon-btn"
-        onClick={onExport}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
-        aria-label={`Export ${exportLabel} as CSV`}
-      >
-        <DownloadIcon />
-        Export CSV
-      </motion.button>
-    </div>
-  </div>
-);
-
-const InsightBanner = ({ icon: Icon, tone = 'info', children }) => (
-  <div className={`insight-banner insight-banner--${tone}`}>
-    <Icon width={18} height={18} />
-    <span>{children}</span>
-  </div>
-);
-
-const EmptyState = ({ text }) => (
-  <div className="empty-state">
-    <EmptyBoxIllustration />
-    <p>{text}</p>
-  </div>
-);
-
-const SkeletonMetrics = ({ count = 3 }) => (
-  <div className="report-metrics">
-    {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="metric-card">
-        <div className="skeleton" style={{ width: '55%', height: 12, marginBottom: '0.75rem' }} />
-        <div className="skeleton" style={{ width: '75%', height: 26 }} />
-      </div>
-    ))}
-  </div>
-);
-
-const SkeletonList = ({ count = 4 }) => (
-  <div className="risks-list">
-    {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="risk-card">
-        <div className="skeleton" style={{ width: '40%', height: 16, marginBottom: '0.85rem' }} />
-        <div className="skeleton" style={{ width: '65%', height: 10, marginBottom: '0.6rem' }} />
-        <div className="skeleton" style={{ width: '50%', height: 10 }} />
-      </div>
-    ))}
-  </div>
-);
-
-const SkeletonReport = ({ variant = 'list', metricsCount = 3, listCount = 4 }) => (
-  <div className="report-section">
-    <SkeletonMetrics count={metricsCount} />
-    {variant === 'list' && <SkeletonList count={listCount} />}
-    {variant === 'chart' && (
-      <div className="stage-distribution">
-        <div className="skeleton" style={{ width: '28%', height: 16, marginBottom: '1rem' }} />
-        <div className="skeleton" style={{ width: '100%', height: 200, borderRadius: '8px' }} />
-      </div>
-    )}
-  </div>
-);
 
 // ============================================================================
 // ARR FORECAST

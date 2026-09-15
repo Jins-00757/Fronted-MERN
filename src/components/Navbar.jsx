@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '../context/useAuth';
 import { useTheme } from '../context/useTheme';
+import { useToast } from '../context/useToast';
 import { useNavigate } from 'react-router-dom';
 import { NotificationCenter } from './NotificationCenter';
 import { Logo } from './ui/Logo';
 import { SunIcon, MoonIcon } from './ui/ThemeIcons';
+import { SearchIcon } from './ui/DashboardIcons';
 import './Navbar.css';
 
 // Settings toggle for the "send when deal stage changes" / daily summary
@@ -13,18 +15,22 @@ import './Navbar.css';
 // an unset flag (every pre-existing user) reads as "on".
 const EmailNotificationsToggle = () => {
   const { user, updatePreferences } = useAuth();
+  const toast = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const emailEnabled = user?.preferences?.notifications?.email !== false;
 
   const handleToggle = useCallback(async () => {
     if (isSaving) return;
     setIsSaving(true);
-    const result = await updatePreferences({ notifications: { email: !emailEnabled } });
+    const next = !emailEnabled;
+    const result = await updatePreferences({ notifications: { email: next } });
     setIsSaving(false);
-    if (!result.success) {
-      alert(result.error || 'Failed to update notification settings');
+    if (result.success) {
+      toast.success(next ? 'Email notifications turned on' : 'Email notifications turned off');
+    } else {
+      toast.error(result.error || 'Failed to update notification settings');
     }
-  }, [isSaving, emailEnabled, updatePreferences]);
+  }, [isSaving, emailEnabled, updatePreferences, toast]);
 
   return (
     <div className="dropdown-item dropdown-toggle-item">
@@ -59,7 +65,7 @@ const EmailNotificationsToggle = () => {
  * - Smooth transitions and hover effects
  * - Accessibility compliant (ARIA labels, keyboard navigation)
  */
-export const Navbar = ({ onSalesforceClick }) => {
+export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
   const { isAuthenticated, user, logout, isLoading, disconnectSalesforce } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -214,6 +220,14 @@ export const Navbar = ({ onSalesforceClick }) => {
             <span className="auth-loading">Loading...</span>
           ) : isAuthenticated ? (
             <div className="user-profile-container">
+              <button
+                className="btn-link cmdk-trigger-btn"
+                onClick={onOpenCommandPalette}
+                aria-label="Open command palette"
+                title="Search & navigate (Ctrl+K)"
+              >
+                <SearchIcon width={17} height={17} />
+              </button>
               <button
                 className="btn-link theme-toggle-btn"
                 onClick={toggleTheme}

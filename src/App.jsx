@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuth } from './context/useAuth';
 import Login from './pages/Login';
@@ -15,6 +16,13 @@ import { SaaSMetricsDashboard } from './components/SaaSMetricsDashboard';
 import { AdvancedSearch } from './components/AdvancedSearch';
 import BulkOperations from './pages/BulkOperations';
 import api from './services/api';
+import { MetricCard } from './components/ui/ReportWidgets';
+import { gridVariants } from './components/ui/reportWidgetUtils';
+import { BriefcaseIcon, CheckCircleIcon, DollarIcon, ListIcon } from './components/ui/DashboardIcons';
+import { CommandPalette } from './components/ui/CommandPalette';
+import { GlobalActivityToaster } from './components/GlobalActivityToaster';
+import './components/AnalyticsDashboard.css';
+import './components/SaaSMetricsDashboard.css';
 import './styles/global.css';
 
 /**
@@ -28,6 +36,24 @@ import './styles/global.css';
 function App() {
   const { isAuthenticated, isInitializing, user } = useAuth();
   const [showSalesforceModal, setShowSalesforceModal] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+
+  // Global Ctrl+K / Cmd+K to open the command palette - only registered
+  // while authenticated, so it does nothing on the login/signup pages.
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+
+    const handleKeyDown = (e) => {
+      const modifierPressed = navigator.platform.toUpperCase().includes('MAC') ? e.metaKey : e.ctrlKey;
+      if (modifierPressed && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsPaletteOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isAuthenticated]);
 
   // The Salesforce OAuth exchange happens entirely on the backend; it
   // redirects back here with a plain `sf`/`sfError` flag (never a code).
@@ -77,7 +103,19 @@ function App() {
   return (
     <div className="app-layout">
       {/* Only show Navbar when authenticated */}
-      {isAuthenticated && <Navbar onSalesforceClick={() => setShowSalesforceModal(true)} />}
+      {isAuthenticated && (
+        <Navbar
+          onSalesforceClick={() => setShowSalesforceModal(true)}
+          onOpenCommandPalette={() => setIsPaletteOpen(true)}
+        />
+      )}
+
+      {isAuthenticated && (
+        <>
+          <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
+          <GlobalActivityToaster />
+        </>
+      )}
 
       {salesforceNotice && (
         <div
@@ -231,13 +269,22 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
         const opportunities = opportunitiesRes.data.success ? opportunitiesRes.data.data : [];
         const pipeline = pipelineRes.data.success ? pipelineRes.data.data : null;
 
-        const closedWon = pipeline?.stageBreakdown?.find((s) => s.stage === 'Closed Won');
-        const pipelineValue = opportunities.reduce((sum, opp) => sum + (opp.Amount || 0), 0);
+        // pipeline-summary's SOQL only aggregates open deals (WHERE IsClosed
+        // = false - see data.controller.js), so it can never contain a
+        // 'Closed Won' stage to look up; count closed-won deals from the
+        // opportunities list instead, which has StageName per record (though
+        // that list is capped at 100 records, unlike the exact aggregate).
+        const closedWonCount = opportunities.filter((opp) => opp.StageName === 'Closed Won').length;
 
         setStats({
-          activeDeals: opportunities.length,
-          closedWon: closedWon?.count || 0,
-          pipelineValue,
+          activeDeals: pipeline?.totalOpportunities ?? 0,
+          closedWon: closedWonCount,
+          pipelineValue: pipeline?.totalPipelineValue ?? 0,
+          // The opportunities fetch is capped at 100 records (see
+          // getSalesforceOpportunities), so this reflects "how many are
+          // available to browse" via the link below, not an exact org-wide
+          // total the way activeDeals/pipelineValue are.
+          totalFetched: opportunities.length,
         });
       } catch (error) {
         console.error('Error fetching Salesforce stats:', error);
@@ -253,7 +300,7 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
     };
   }, [salesforceConnected]);
 
-  const opportunityCount = stats?.activeDeals ?? 0;
+  const opportunityCount = stats?.totalFetched ?? 0;
 
   const handleExportStats = async (format) => {
     try {
@@ -280,25 +327,35 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
   return (
     <div className="container">
       {/* Header Section */}
-      <div style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '2rem',
-        borderRadius: '8px',
-        marginBottom: '2rem',
-        color: 'white'
-      }}>
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          padding: '2rem',
+          borderRadius: '8px',
+          marginBottom: '2rem',
+          color: 'white'
+        }}
+      >
         <h1 style={{ margin: 0, marginBottom: '0.5rem' }}>Sales Pipeline Intelligence</h1>
         <p style={{ margin: 0, opacity: 0.9 }}>Welcome back, {user?.name || 'User'}!</p>
-      </div>
+      </motion.div>
 
       {/* Salesforce Connection Status - Day 3 */}
-      <div style={{
-        background: salesforceConnected ? '#f0fdf4' : '#fef2f2',
-        border: `2px solid ${salesforceConnected ? '#10b981' : '#ef4444'}`,
-        padding: '1.5rem',
-        borderRadius: '8px',
-        marginBottom: '2rem'
-      }}>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.08 }}
+        style={{
+          background: salesforceConnected ? '#f0fdf4' : '#fef2f2',
+          border: `2px solid ${salesforceConnected ? '#10b981' : '#ef4444'}`,
+          padding: '1.5rem',
+          borderRadius: '8px',
+          marginBottom: '2rem'
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h3 style={{ margin: 0, marginBottom: '0.5rem', color: '#1f2937' }}>
@@ -315,8 +372,10 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
             </p>
           </div>
           {!salesforceConnected && (
-            <button
+            <motion.button
               onClick={onSalesforceConnect}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               style={{
                 padding: '0.75rem 1.5rem',
                 background: '#667eea',
@@ -327,14 +386,12 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
                 fontSize: '0.9rem',
                 fontWeight: '600'
               }}
-              onMouseOver={(e) => e.target.style.background = '#5568d3'}
-              onMouseOut={(e) => e.target.style.background = '#667eea'}
             >
               Connect Salesforce
-            </button>
+            </motion.button>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Dashboard Stats */}
       <div style={{
@@ -381,106 +438,59 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
           </div>
         )}
       </div>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '1.5rem',
-        marginBottom: '2rem'
-      }}>
-        {/* Active Deals Card */}
-        <div style={{
-          padding: '1.5rem',
-          background: '#f0f9ff',
-          borderRadius: '8px',
-          borderLeft: '4px solid #3b82f6',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-        }}>
-          <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem', fontWeight: '600' }}>
-            ACTIVE DEALS
-          </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
-            {salesforceConnected ? (statsLoading ? '…' : stats?.activeDeals ?? 0) : '0'}
-          </div>
-          <div style={{
-            fontSize: '0.8rem',
-            color: '#999',
-            marginTop: '0.75rem'
-          }}>
-            {salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : 'Open deals') : 'Connect Salesforce to view'}
-          </div>
-        </div>
+      <motion.div
+        className="report-metrics"
+        variants={gridVariants}
+        initial="hidden"
+        animate="show"
+        style={{ marginBottom: '2rem' }}
+      >
+        <MetricCard
+          label="Active Deals"
+          icon={BriefcaseIcon}
+          tone="purple"
+          numericValue={salesforceConnected ? stats?.activeDeals ?? 0 : 0}
+          format={(n) => Math.round(n)}
+          footer={salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : 'Open deals') : 'Connect Salesforce to view'}
+        />
 
-        {/* Closed Won Card */}
-        <div style={{
-          padding: '1.5rem',
-          background: '#cfbff4',
-          borderRadius: '8px',
-          borderLeft: '4px solid #10b981',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-        }}>
-          <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem', fontWeight: '600' }}>
-            CLOSED WON
-          </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#10b981' }}>
-            {salesforceConnected ? (statsLoading ? '…' : stats?.closedWon ?? 0) : '0'}
-          </div>
-          <div style={{
-            fontSize: '0.8rem',
-            color: '#999',
-            marginTop: '0.75rem'
-          }}>
-            {salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : 'Deals won') : 'Connect Salesforce to view'}
-          </div>
-        </div>
+        <MetricCard
+          label="Closed Won"
+          icon={CheckCircleIcon}
+          tone="green"
+          numericValue={salesforceConnected ? stats?.closedWon ?? 0 : 0}
+          format={(n) => Math.round(n)}
+          footer={salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : 'Deals won') : 'Connect Salesforce to view'}
+        />
 
-        {/* Pipeline Value Card */}
-        <div style={{
-          padding: '1.5rem',
-          background: '#fef2f2',
-          borderRadius: '8px',
-          borderLeft: '4px solid #ef4444',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-        }}>
-          <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem', fontWeight: '600' }}>
-            PIPELINE VALUE
-          </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ef4444' }}>
-            {salesforceConnected ? (statsLoading ? '…' : `$${(stats?.pipelineValue ?? 0).toLocaleString()}`) : '$0'}
-          </div>
-          <div style={{
-            fontSize: '0.8rem',
-            color: '#999',
-            marginTop: '0.75rem'
-          }}>
-            {salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : 'Open pipeline') : 'Connect Salesforce to view'}
-          </div>
-        </div>
+        <MetricCard
+          label="Pipeline Value"
+          icon={DollarIcon}
+          tone="red"
+          numericValue={salesforceConnected ? stats?.pipelineValue ?? 0 : 0}
+          format={(n) => `$${Math.round(n).toLocaleString()}`}
+          footer={salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : 'Open pipeline') : 'Connect Salesforce to view'}
+        />
 
-        {/* Opportunities Count Card - Day 3 */}
-        <div style={{
-          padding: '1.5rem',
-          background: '#fef3c7',
-          borderRadius: '8px',
-          borderLeft: '4px solid #f59e0b',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-        }}>
-          <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem', fontWeight: '600' }}>
-            OPPORTUNITIES
-          </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#f59e0b' }}>
-            {salesforceConnected ? (statsLoading ? '…' : opportunityCount) : '0'}
-          </div>
-          <div style={{ fontSize: '0.8rem', marginTop: '0.75rem' }}>
-            {salesforceConnected ? (
-              <Link to="/opportunities" style={{ color: '#f59e0b', fontWeight: 600, textDecoration: 'none' }}>
-                View all opportunities →
-              </Link>
+        <MetricCard
+          label="Opportunities"
+          icon={ListIcon}
+          tone="indigo"
+          numericValue={salesforceConnected ? opportunityCount : 0}
+          format={(n) => Math.round(n)}
+          footer={
+            salesforceConnected ? (
+              statsLoading ? (
+                'Loading from Salesforce...'
+              ) : (
+                <Link to="/opportunities">View all opportunities →</Link>
+              )
             ) : (
-              <span style={{ color: '#999' }}>Connect Salesforce to view</span>
-            )}
-          </div>
-        </div>
-      </div>
+              'Connect Salesforce to view'
+            )
+          }
+        />
+      </motion.div>
 
       {/* Quick Info Section */}
       <div style={{

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthProvider.jsx'
 import { ThemeProvider } from './context/ThemeProvider.jsx'
+import { ToastProvider } from './context/ToastProvider.jsx'
 
 /**
  * Main Entry Point - React Router v7 Future Flags Enabled
@@ -19,9 +20,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       }}
     >
       <ThemeProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ToastProvider>
       </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>,

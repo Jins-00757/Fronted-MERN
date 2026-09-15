@@ -103,6 +103,90 @@ export const TrendingDownIcon = (props) => (
   </svg>
 );
 
+export const BriefcaseIcon = (props) => (
+  <svg {...base} {...props}>
+    <rect x="3" y="8" width="18" height="12" rx="2" />
+    <path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <path d="M3 13h18" />
+  </svg>
+);
+
+export const DollarIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M12 3v18" />
+    <path d="M16.5 7.5c0-1.7-1.6-2.8-4.5-2.8s-4.5 1.2-4.5 2.8c0 3.6 9 1.7 9 5.4 0 1.7-2 2.9-4.5 2.9s-4.9-1.1-4.9-2.9" />
+  </svg>
+);
+
+export const ListIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M9 6h11M9 12h11M9 18h11" />
+    <circle cx="4.5" cy="6" r="1.4" fill="currentColor" stroke="none" />
+    <circle cx="4.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    <circle cx="4.5" cy="18" r="1.4" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+export const SearchIcon = (props) => (
+  <svg {...base} {...props}>
+    <circle cx="10.5" cy="10.5" r="6.5" />
+    <path d="M20 20l-4.8-4.8" />
+  </svg>
+);
+
+export const LayersIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M12 3l9 5-9 5-9-5 9-5Z" />
+    <path d="M3 13l9 5 9-5" />
+    <path d="M3 8l9 5 9-5" />
+  </svg>
+);
+
+export const LogoutIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
+    <path d="M10 8l-4 4 4 4" />
+    <path d="M6 12h12" />
+  </svg>
+);
+
+export const UsersIcon = (props) => (
+  <svg {...base} {...props}>
+    <circle cx="9" cy="8" r="3.2" />
+    <path d="M3.5 19c.8-3 3-4.6 5.5-4.6s4.7 1.6 5.5 4.6" />
+    <path d="M16 5.2a3.2 3.2 0 0 1 0 6.1" />
+    <path d="M15 14.6c2.3.3 4 1.8 4.6 4.4" />
+  </svg>
+);
+
+export const PlusIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+export const EditIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+    <path d="M13.5 6.5l4 4" />
+  </svg>
+);
+
+export const TrashIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M4 7h16" />
+    <path d="M9 7V4h6v3" />
+    <path d="M6 7l1 13h10l1-13" />
+    <path d="M10 11v6M14 11v6" />
+  </svg>
+);
+
+export const XIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
 export const EmptyBoxIllustration = (props) => (
   <svg
     width={120}

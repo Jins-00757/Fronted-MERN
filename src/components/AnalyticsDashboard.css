@@ -42,21 +42,6 @@
   color: var(--text-primary);
 }
 
-.btn-export {
-  padding: 0.5rem 0.9rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.btn-export:hover {
-  background: var(--bg-hover);
-}
 
 .report-tabs {
   display: flex;
@@ -135,6 +120,16 @@
 
 .metric-trend.down {
   color: #dc2626;
+}
+
+.metric-card-footer {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-faint);
+}
+
+.metric-card-footer a {
+  font-weight: 600;
 }
 
 .stage-distribution {
