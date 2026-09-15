@@ -6,7 +6,17 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5005/api';
 const WS_URL = API_URL.replace(/^http/, 'ws').replace(/\/api\/?$/, '') + '/ws';
 
-const DEFAULT_EVENT_TYPES = ['opportunity.created', 'opportunity.updated', 'opportunity.closed'];
+const DEFAULT_EVENT_TYPES = [
+  'opportunity.created',
+  'opportunity.updated',
+  'opportunity.closed',
+  // Pushed by notifyStageChange()/sendDailySummaries() when an email
+  // notification fails to send (see opportunitiesController.js /
+  // schedulerService.js) - previously only a server-side console.error, so
+  // a bad address or SMTP outage was invisible until an external bounce
+  // showed up in the user's inbox, if ever.
+  'notification.email_failed',
+];
 
 /**
  * useNotifications - Live in-app notifications over WebSocket.

@@ -3,14 +3,18 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuth } from './context/useAuth';
+import { useToast } from './context/useToast';
 import Login from './pages/Login';
 import { Signup } from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/layout/Footer';
 import { SalesforceConnect } from './components/salesforce/SalesforceConnect';
 import { OpportunitiesList } from './components/salesforce/OpportunitiesList';
+import { LeadsBoard } from './components/salesforce/LeadsBoard';
+import { ContractsView } from './components/salesforce/ContractsView';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { SaaSMetricsDashboard } from './components/SaaSMetricsDashboard';
 import { AdvancedSearch } from './components/AdvancedSearch';
@@ -21,6 +25,8 @@ import { gridVariants } from './components/ui/reportWidgetUtils';
 import { BriefcaseIcon, CheckCircleIcon, DollarIcon, ListIcon } from './components/ui/DashboardIcons';
 import { CommandPalette } from './components/ui/CommandPalette';
 import { GlobalActivityToaster } from './components/GlobalActivityToaster';
+import { ProfileCard } from './components/ProfileCard';
+import { downloadFileFromLink } from './utils/secureDownload';
 import './components/AnalyticsDashboard.css';
 import './components/SaaSMetricsDashboard.css';
 import './styles/global.css';
@@ -156,6 +162,10 @@ function App() {
             path="/reset-password"
             element={isAuthenticated ? <Navigate to="/" replace /> : <ResetPassword />}
           />
+          {/* Reachable whether signed in or not - the token in the link
+              proves identity on its own, and a user may open it in a
+              different browser/device than they signed up in. */}
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
           {/* Protected Routes */}
           <Route
@@ -176,6 +186,24 @@ function App() {
             element={
               <ProtectedRoute>
                 <OpportunitiesList />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Leads, Lead Scoring & Contracts */}
+          <Route
+            path="/leads"
+            element={
+              <ProtectedRoute>
+                <LeadsBoard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contracts"
+            element={
+              <ProtectedRoute>
+                <ContractsView />
               </ProtectedRoute>
             }
           />
@@ -243,6 +271,7 @@ function App() {
 
 function Dashboard({ onSalesforceConnect, salesforceConnected }) {
   const { user } = useAuth();
+  const toast = useToast();
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
@@ -304,23 +333,15 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
 
   const handleExportStats = async (format) => {
     try {
-      const response = await api.get(`/data/export/${format}`, {
-        responseType: format === 'pdf' ? 'blob' : 'text',
-      });
-
-      const blob = new Blob([response.data], {
-        type: format === 'pdf' ? 'application/pdf' : 'text/csv',
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `dashboard-stats.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      // GET /data/export/:format now returns a secure, single-use, 1-hour
+      // download link rather than the file itself (see
+      // data.controller.js's exportDashboardStats) - redeem it immediately
+      // so the user experience is still one click.
+      const linkResponse = await api.get(`/data/export/${format}`);
+      await downloadFileFromLink(linkResponse.data.data);
     } catch (error) {
       console.error('Export error:', error);
+      toast.error(error.message || 'Failed to export dashboard stats');
     }
   };
 
@@ -492,45 +513,11 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
         />
       </motion.div>
 
-      {/* Quick Info Section */}
-      <div style={{
-        background: 'var(--bg-subtle)',
-        padding: '1.5rem',
-        borderRadius: '8px',
-        border: '1px solid var(--border-color)'
-      }}>
-        <h3 style={{ margin: 0, marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.1rem' }}>
-          Profile Information
-        </h3>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem'
-        }}>
-          <div>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Email</p>
-            <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-primary)' }}>{user?.email}</p>
-          </div>
-          <div>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Role</p>
-            <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-primary)', textTransform: 'capitalize' }}>
-              {user?.role || 'User'}
-            </p>
-          </div>
-          {user?.company && (
-            <div>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Company</p>
-              <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-primary)' }}>{user.company}</p>
-            </div>
-          )}
-          {user?.jobTitle && (
-            <div>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Job Title</p>
-              <p style={{ margin: 0, fontWeight: '600', color: 'var(--text-primary)' }}>{user.jobTitle}</p>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Profile Information */}
+      <h2 style={{ margin: 0, marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+        Profile Information
+      </h2>
+      <ProfileCard user={user} onConnectSalesforce={!salesforceConnected ? onSalesforceConnect : undefined} />
     </div>
   );
 }

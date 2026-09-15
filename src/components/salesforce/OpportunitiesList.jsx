@@ -8,6 +8,7 @@ import { OpportunitiesBoard } from './OpportunitiesBoard';
 import { Modal } from '../ui/Modal';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { markSelfAction } from '../../utils/recentSelfActions';
+import { canManageSalesforceRecords } from '../../utils/permissions';
 import {
   PlusIcon,
   EditIcon,
@@ -77,6 +78,10 @@ const normalizeAmount = (value) =>
 export const OpportunitiesList = () => {
   const { user } = useAuth();
   const toast = useToast();
+  // Deleting a Salesforce record outright is restricted to manager/admin on
+  // the backend (see salesforce.routes.js) - hide the action for everyone
+  // else instead of showing a button that will just 403.
+  const canDelete = canManageSalesforceRecords(user);
 
   const [opportunities, setOpportunities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -349,14 +354,16 @@ export const OpportunitiesList = () => {
                                   </button>
                                 </>
                               )}
-                              <button
-                                type="button"
-                                className="icon-action danger"
-                                title="Delete"
-                                onClick={() => setConfirmState({ type: 'delete', opportunity: opp })}
-                              >
-                                <TrashIcon width={15} height={15} />
-                              </button>
+                              {canDelete && (
+                                <button
+                                  type="button"
+                                  className="icon-action danger"
+                                  title="Delete"
+                                  onClick={() => setConfirmState({ type: 'delete', opportunity: opp })}
+                                >
+                                  <TrashIcon width={15} height={15} />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </motion.tr>
@@ -382,7 +389,7 @@ export const OpportunitiesList = () => {
         <OpportunitiesBoard
           refreshKey={refreshKey}
           onEdit={(opp) => setFormState({ mode: 'edit', opportunity: opp })}
-          onDelete={(opp) => setConfirmState({ type: 'delete', opportunity: opp })}
+          onDelete={canDelete ? (opp) => setConfirmState({ type: 'delete', opportunity: opp }) : undefined}
           onCloseWon={(opp) => setConfirmState({ type: 'close-won', opportunity: opp })}
           onCloseLost={(opp) => setConfirmState({ type: 'close-lost', opportunity: opp })}
           onMutated={refetch}

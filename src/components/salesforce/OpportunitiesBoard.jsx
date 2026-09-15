@@ -231,15 +231,17 @@ const KanbanCard = ({ opportunity, columnRefs, isPending, onDrop, onEdit, onDele
             </button>
           </>
         )}
-        <button
-          type="button"
-          className="kanban-icon-btn danger"
-          title="Delete"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={() => onDelete(opportunity)}
-        >
-          <TrashIcon width={13} height={13} />
-        </button>
+        {onDelete && (
+          <button
+            type="button"
+            className="kanban-icon-btn danger"
+            title="Delete"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => onDelete(opportunity)}
+          >
+            <TrashIcon width={13} height={13} />
+          </button>
+        )}
       </div>
 
       {isPending && <div className="kanban-card-syncing">Syncing…</div>}

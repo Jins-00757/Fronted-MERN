@@ -43,6 +43,8 @@ const NotificationItem = ({ notification }) => {
         return '📝';
       case 'opportunity.closed':
         return '🎉';
+      case 'notification.email_failed':
+        return '⚠️';
       default:
         return 'ℹ️';
     }

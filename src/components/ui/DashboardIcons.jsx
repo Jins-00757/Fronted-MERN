@@ -187,6 +187,42 @@ export const XIcon = (props) => (
   </svg>
 );
 
+export const MailIcon = (props) => (
+  <svg {...base} {...props}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="M3.5 6.5l8.5 6 8.5-6" />
+  </svg>
+);
+
+export const PhoneIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M5.5 4h3l1.5 4.5-2 1.5a11 11 0 0 0 5 5l1.5-2L19 14.5v3a1.5 1.5 0 0 1-1.6 1.5A15.5 15.5 0 0 1 4 4.6 1.5 1.5 0 0 1 5.5 4Z" />
+  </svg>
+);
+
+export const BuildingIcon = (props) => (
+  <svg {...base} {...props}>
+    <rect x="4" y="3" width="12" height="18" rx="1" />
+    <path d="M8 7h.01M12 7h.01M8 11h.01M12 11h.01M8 15h.01M12 15h.01" />
+    <path d="M16 10h4v11h-4" />
+  </svg>
+);
+
+export const ShieldIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M12 3.5l7 3v5c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9v-5Z" />
+    <path d="M9 12l2 2 4-4.2" />
+  </svg>
+);
+
+export const CalendarIcon = (props) => (
+  <svg {...base} {...props}>
+    <rect x="3.5" y="5" width="17" height="15" rx="2" />
+    <path d="M3.5 9.5h17" />
+    <path d="M8 3v4M16 3v4" />
+  </svg>
+);
+
 export const EmptyBoxIllustration = (props) => (
   <svg
     width={120}

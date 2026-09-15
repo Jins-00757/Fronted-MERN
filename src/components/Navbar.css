@@ -478,6 +478,46 @@
   background-color: transparent;
 }
 
+.dropdown-verify-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: default;
+  color: #b45309;
+  font-size: 0.85rem;
+}
+
+.dropdown-verify-item:hover {
+  background-color: transparent;
+}
+
+[data-theme="dark"] .dropdown-verify-item {
+  color: #fbbf24;
+}
+
+.dropdown-verify-btn {
+  flex-shrink: 0;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--primary-color);
+  background: none;
+  color: var(--primary-color);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dropdown-verify-btn:hover:not(:disabled) {
+  background-color: var(--navbar-hover);
+}
+
+.dropdown-verify-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .switch {
   position: relative;
   flex-shrink: 0;

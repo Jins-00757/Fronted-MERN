@@ -7,6 +7,7 @@ import { NotificationCenter } from './NotificationCenter';
 import { Logo } from './ui/Logo';
 import { SunIcon, MoonIcon } from './ui/ThemeIcons';
 import { SearchIcon } from './ui/DashboardIcons';
+import { canManageSalesforceRecords } from '../utils/permissions';
 import './Navbar.css';
 
 // Settings toggle for the "send when deal stage changes" / daily summary
@@ -50,6 +51,42 @@ const EmailNotificationsToggle = () => {
   );
 };
 
+// Shown in the dropdown only while user.isEmailVerified is false - lets the
+// user re-trigger POST /auth/verify-email/resend (e.g. after fixing a
+// typo'd address, or because the original link expired) without leaving
+// the page.
+const VerifyEmailReminder = () => {
+  const { resendVerificationEmail } = useAuth();
+  const toast = useToast();
+  const [isSending, setIsSending] = useState(false);
+
+  const handleResend = useCallback(async () => {
+    if (isSending) return;
+    setIsSending(true);
+    const result = await resendVerificationEmail();
+    setIsSending(false);
+    if (result.success) {
+      toast.success(result.message || 'Verification email sent');
+    } else {
+      toast.error(result.error || 'Failed to send verification email');
+    }
+  }, [isSending, resendVerificationEmail, toast]);
+
+  return (
+    <div className="dropdown-item dropdown-verify-item">
+      <span>✉️ Email not verified</span>
+      <button
+        type="button"
+        className="dropdown-verify-btn"
+        onClick={handleResend}
+        disabled={isSending}
+      >
+        {isSending ? 'Sending...' : 'Resend'}
+      </button>
+    </div>
+  );
+};
+
 // NotificationCenter owns its own useNotifications() WebSocket connection,
 // so it's only mounted while the dropdown is open - mounting it eagerly (or
 // calling useNotifications() again here for a badge count) would open a
@@ -74,13 +111,18 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
+  // Bulk Operations mutates Salesforce data at scale and is restricted to
+  // manager/admin on the backend (see salesforce.routes.js) - only show the
+  // link to roles that can actually use it.
   const moreLinks = user?.isSalesforceConnected
     ? [
         { path: '/opportunities', label: 'Opportunities' },
+        { path: '/leads', label: 'Leads' },
+        { path: '/contracts', label: 'Contracts' },
         { path: '/analytics', label: 'Analytics' },
         { path: '/saas-metrics', label: 'SaaS Metrics' },
         { path: '/search', label: 'Search' },
-        { path: '/bulk-operations', label: 'Bulk Operations' },
+        ...(canManageSalesforceRecords(user) ? [{ path: '/bulk-operations', label: 'Bulk Operations' }] : []),
       ]
     : [];
 
@@ -286,6 +328,13 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
                   </div>
 
                   <div className="dropdown-divider"></div>
+
+                  {!user?.isEmailVerified && (
+                    <>
+                      <VerifyEmailReminder />
+                      <div className="dropdown-divider"></div>
+                    </>
+                  )}
 
                   <EmailNotificationsToggle />
 

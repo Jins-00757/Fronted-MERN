@@ -72,6 +72,13 @@ export const AuthProvider = ({ children }) => {
 
       const response = await api.post('/auth/login', { email, password });
 
+      if (response.data.status === 'pending_2fa') {
+        // Correct password, but the account has 2FA enabled - the backend
+        // has set a short-lived pending cookie instead of a real session.
+        // Not an error: Login.jsx should show the code-entry step next.
+        return { success: false, requiresTwoFactor: true };
+      }
+
       if (response.data.status === 'ok') {
         setUser(response.data.data);
         setIsAuthenticated(true);
@@ -86,6 +93,84 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
+    }
+  }, []);
+
+  // ========================================================================
+  // 2FA - Second step of login for 2FA-enabled accounts. Consumes the
+  // pending_2fa cookie set by login() above and, on success, completes the
+  // session exactly like a normal login would.
+  // ========================================================================
+
+  const verifyTwoFactor = useCallback(async ({ token, backupCode }) => {
+    try {
+      setError(null);
+      setIsLoading(true);
+
+      const response = await api.post('/auth/2fa/validate', { token, backupCode });
+
+      if (response.data.status === 'ok') {
+        setUser(response.data.data);
+        setIsAuthenticated(true);
+        return { success: true, user: response.data.data };
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Invalid verification code';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // ========================================================================
+  // 2FA - Manage two-factor authentication from account settings
+  // ========================================================================
+
+  const getTwoFactorStatus = useCallback(async () => {
+    try {
+      const response = await api.get('/auth/2fa/status');
+      return { success: true, ...response.data.data };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  }, []);
+
+  const setupTwoFactor = useCallback(async () => {
+    try {
+      const response = await api.post('/auth/2fa/setup');
+      return { success: true, ...response.data.data };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  }, []);
+
+  const confirmTwoFactorSetup = useCallback(async (token) => {
+    try {
+      const response = await api.post('/auth/2fa/verify-setup', { token });
+      setUser((prev) => (prev ? { ...prev, twoFactorEnabled: true } : prev));
+      return { success: true, backupCodes: response.data.data.backupCodes };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  }, []);
+
+  const disableTwoFactor = useCallback(async ({ password, token }) => {
+    try {
+      await api.post('/auth/2fa/disable', { password, token });
+      setUser((prev) => (prev ? { ...prev, twoFactorEnabled: false } : prev));
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  }, []);
+
+  const regenerateBackupCodes = useCallback(async (password) => {
+    try {
+      const response = await api.post('/auth/2fa/backup-codes/regenerate', { password });
+      return { success: true, backupCodes: response.data.data.backupCodes };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
     }
   }, []);
 
@@ -212,6 +297,35 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ========================================================================
+  // EMAIL VERIFICATION - Resend the verification email, and refresh the
+  // in-memory user after the VerifyEmail page confirms a token so the
+  // "unverified" banner/reminder disappears without a full reload.
+  // ========================================================================
+
+  const resendVerificationEmail = useCallback(async () => {
+    try {
+      const response = await api.post('/auth/verify-email/resend');
+      return { success: true, message: response.data.message };
+    } catch (err) {
+      return { success: false, error: err.message || 'Failed to resend verification email' };
+    }
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const response = await api.get('/auth/me');
+      if (response.data.status === 'ok') {
+        setUser(response.data.data);
+        return response.data.data;
+      }
+      return null;
+    } catch (err) {
+      console.error('Error refreshing user:', err);
+      return null;
+    }
+  }, []);
+
+  // ========================================================================
   // SESSION RESTORATION - Restore session on app load
   // ========================================================================
 
@@ -261,6 +375,14 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
 
+    // 2FA
+    verifyTwoFactor,
+    getTwoFactorStatus,
+    setupTwoFactor,
+    confirmTwoFactorSetup,
+    disableTwoFactor,
+    regenerateBackupCodes,
+
     // Salesforce methods
     loginWithSalesforce,
     checkSalesforceStatus,
@@ -268,6 +390,10 @@ export const AuthProvider = ({ children }) => {
 
     // Preferences
     updatePreferences,
+
+    // Email verification
+    resendVerificationEmail,
+    refreshUser,
   };
 
   // ========================================================================
