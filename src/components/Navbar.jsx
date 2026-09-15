@@ -7,6 +7,43 @@ import { Logo } from './ui/Logo';
 import { SunIcon, MoonIcon } from './ui/ThemeIcons';
 import './Navbar.css';
 
+// Settings toggle for the "send when deal stage changes" / daily summary
+// emails (see emailService.js on the backend) - both respect this same
+// preferences.notifications.email flag, defaulting to enabled (opt-out) so
+// an unset flag (every pre-existing user) reads as "on".
+const EmailNotificationsToggle = () => {
+  const { user, updatePreferences } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const emailEnabled = user?.preferences?.notifications?.email !== false;
+
+  const handleToggle = useCallback(async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    const result = await updatePreferences({ notifications: { email: !emailEnabled } });
+    setIsSaving(false);
+    if (!result.success) {
+      alert(result.error || 'Failed to update notification settings');
+    }
+  }, [isSaving, emailEnabled, updatePreferences]);
+
+  return (
+    <div className="dropdown-item dropdown-toggle-item">
+      <span>📧 Email notifications</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={emailEnabled}
+        aria-label="Toggle email notifications"
+        className={`switch ${emailEnabled ? 'on' : ''}`}
+        onClick={handleToggle}
+        disabled={isSaving}
+      >
+        <span className="switch-thumb" />
+      </button>
+    </div>
+  );
+};
+
 // NotificationCenter owns its own useNotifications() WebSocket connection,
 // so it's only mounted while the dropdown is open - mounting it eagerly (or
 // calling useNotifications() again here for a badge count) would open a
@@ -233,6 +270,10 @@ export const Navbar = ({ onSalesforceClick }) => {
                     <div className="dropdown-name">{user?.name}</div>
                     <div className="dropdown-email">{user?.email}</div>
                   </div>
+
+                  <div className="dropdown-divider"></div>
+
+                  <EmailNotificationsToggle />
 
                   <div className="dropdown-divider"></div>
 

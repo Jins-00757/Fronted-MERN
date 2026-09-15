@@ -190,6 +190,28 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ========================================================================
+  // PREFERENCES - Update notification/display preferences (e.g. the email
+  // notifications toggle in Navbar.jsx). Sends only the changed slice -
+  // PUT /api/auth/profile merges it into the user's existing preferences
+  // rather than replacing them (see auth.controller.js:updateProfile).
+  // ========================================================================
+
+  const updatePreferences = useCallback(async (preferences) => {
+    try {
+      const response = await api.put('/auth/profile', { preferences });
+
+      if (response.data.status === 'ok') {
+        setUser(response.data.data);
+        return { success: true };
+      }
+      return { success: false };
+    } catch (err) {
+      console.error('Error updating preferences:', err);
+      return { success: false, error: err.message || 'Failed to update preferences' };
+    }
+  }, []);
+
+  // ========================================================================
   // SESSION RESTORATION - Restore session on app load
   // ========================================================================
 
@@ -243,6 +265,9 @@ export const AuthProvider = ({ children }) => {
     loginWithSalesforce,
     checkSalesforceStatus,
     disconnectSalesforce,
+
+    // Preferences
+    updatePreferences,
   };
 
   // ========================================================================

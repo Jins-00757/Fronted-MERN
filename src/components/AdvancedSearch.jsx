@@ -17,26 +17,39 @@ export const AdvancedSearch = ({ onResults }) => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Get suggestions as user types
+  // Get suggestions as user types. An AbortController guards against a race
+  // where an earlier keystroke's request resolves after a later one (slow
+  // network, backend jitter) and overwrites fresher suggestions with stale
+  // ones - the debounce alone only spaces out requests, it doesn't order
+  // their responses.
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (query.length < 2) {
-        setSuggestions([]);
-        return;
-      }
+    if (query.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing stale suggestions the instant the query is too short to search, not derived from other state
+      setSuggestions([]);
+      return undefined;
+    }
 
+    const controller = new AbortController();
+
+    const fetchSuggestions = async () => {
       try {
         const response = await api.get('/search/suggestions', {
           params: { q: query },
+          signal: controller.signal,
         });
         setSuggestions(response.data.suggestions || []);
       } catch (error) {
-        console.error('Error fetching suggestions:', error);
+        if (error.code !== 'ERR_CANCELED') {
+          console.error('Error fetching suggestions:', error);
+        }
       }
     };
 
     const timer = setTimeout(fetchSuggestions, 300);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [query]);
 
   const handleSearch = async (e) => {
@@ -91,7 +104,10 @@ export const AdvancedSearch = ({ onResults }) => {
       const link = document.createElement('a');
       link.href = url;
       link.download = `opportunities.${format}`;
+      document.body.appendChild(link);
       link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Export error:', error);
     }

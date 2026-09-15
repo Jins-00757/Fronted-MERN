@@ -255,6 +255,28 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
 
   const opportunityCount = stats?.activeDeals ?? 0;
 
+  const handleExportStats = async (format) => {
+    try {
+      const response = await api.get(`/data/export/${format}`, {
+        responseType: format === 'pdf' ? 'blob' : 'text',
+      });
+
+      const blob = new Blob([response.data], {
+        type: format === 'pdf' ? 'application/pdf' : 'text/csv',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `dashboard-stats.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export error:', error);
+    }
+  };
+
   return (
     <div className="container">
       {/* Header Section */}
@@ -315,6 +337,50 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
       </div>
 
       {/* Dashboard Stats */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
+        marginBottom: '1rem',
+      }}>
+        <h2 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Dashboard Stats</h2>
+        {salesforceConnected && (
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={() => handleExportStats('csv')}
+              style={{
+                padding: '0.5rem 0.9rem',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                background: 'white',
+                color: '#374151',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+              }}
+            >
+              📥 Export CSV
+            </button>
+            <button
+              onClick={() => handleExportStats('pdf')}
+              style={{
+                padding: '0.5rem 0.9rem',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                background: 'white',
+                color: '#374151',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '0.85rem',
+              }}
+            >
+              📥 Export PDF
+            </button>
+          </div>
+        )}
+      </div>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',

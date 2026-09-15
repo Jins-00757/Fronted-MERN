@@ -1,6 +1,7 @@
 
 import  { useState } from 'react';
 import useSalesforceData from '../hooks/useSalesforceData';
+import api from '../services/api';
 import './AnalyticsDashboard.css';
 
 export const AnalyticsDashboard = () => {
@@ -27,6 +28,29 @@ export const AnalyticsDashboard = () => {
     { autoRefresh: true, refreshInterval: 10 * 60 * 1000 }
   );
 
+  const handleExport = async (format) => {
+    try {
+      const response = await api.get(`/analytics/export/${format}`, {
+        params: { report: selectedReport, range: dateRange },
+        responseType: format === 'pdf' ? 'blob' : 'text',
+      });
+
+      const blob = new Blob([response.data], {
+        type: format === 'pdf' ? 'application/pdf' : 'text/csv',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `analytics-${selectedReport}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export error:', error);
+    }
+  };
+
   return (
     <div className="analytics-dashboard">
       <div className="dashboard-header">
@@ -43,6 +67,12 @@ export const AnalyticsDashboard = () => {
             <option value={90}>Last 90 days</option>
             <option value={365}>Last year</option>
           </select>
+          <button className="btn-export" onClick={() => handleExport('csv')}>
+            📥 Export CSV
+          </button>
+          <button className="btn-export" onClick={() => handleExport('pdf')}>
+            📥 Export PDF
+          </button>
         </div>
       </div>
 

@@ -18,6 +18,16 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // A canceled request (AbortController/CancelToken) has no meaningful
+    // response body - preserve axios's own `code` untouched so callers can
+    // still tell "the request was aborted on purpose" apart from a real
+    // network/server failure (see AdvancedSearch.jsx's suggestions fetch).
+    if (axios.isCancel(error) || error.code === 'ERR_CANCELED') {
+      const err = new Error(error.message || 'Request canceled');
+      err.code = 'ERR_CANCELED';
+      return Promise.reject(err);
+    }
+
     const message =
       error.response?.data?.message || error.response?.data?.error || error.message || 'Network error';
 

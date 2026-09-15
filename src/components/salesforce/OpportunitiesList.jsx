@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/useAuth';
 import api from '../../services/api';
+import { ActivityFeed } from './ActivityFeed';
 
 const STAGE_COLORS = {
   Prospecting: '#3b82f6',
@@ -23,6 +24,7 @@ export const OpportunitiesList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
 
   useEffect(() => {
     // Nothing to fetch when disconnected - the component returns the empty
@@ -77,22 +79,40 @@ export const OpportunitiesList = () => {
             <strong>{formatCurrency(totalValue)}</strong>
           </p>
         </div>
-        <button
-          onClick={() => setRefreshKey((k) => k + 1)}
-          disabled={isLoading}
-          style={{
-            padding: '0.6rem 1.1rem',
-            borderRadius: '6px',
-            border: '1px solid #d1d5db',
-            background: 'white',
-            color: '#374151',
-            cursor: isLoading ? 'default' : 'pointer',
-            fontWeight: 600,
-          }}
-        >
-          {isLoading ? 'Refreshing...' : '↻ Refresh'}
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button
+            onClick={() => setIsActivityOpen(true)}
+            style={{
+              padding: '0.6rem 1.1rem',
+              borderRadius: '6px',
+              border: '1px solid #d1d5db',
+              background: 'white',
+              color: '#374151',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            🕘 Activity
+          </button>
+          <button
+            onClick={() => setRefreshKey((k) => k + 1)}
+            disabled={isLoading}
+            style={{
+              padding: '0.6rem 1.1rem',
+              borderRadius: '6px',
+              border: '1px solid #d1d5db',
+              background: 'white',
+              color: '#374151',
+              cursor: isLoading ? 'default' : 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            {isLoading ? 'Refreshing...' : '↻ Refresh'}
+          </button>
+        </div>
       </div>
+
+      <ActivityFeed isOpen={isActivityOpen} onClose={() => setIsActivityOpen(false)} />
 
       {error && (
         <div

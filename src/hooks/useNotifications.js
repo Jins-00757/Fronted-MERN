@@ -6,6 +6,8 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5005/api';
 const WS_URL = API_URL.replace(/^http/, 'ws').replace(/\/api\/?$/, '') + '/ws';
 
+const DEFAULT_EVENT_TYPES = ['opportunity.created', 'opportunity.updated', 'opportunity.closed'];
+
 /**
  * useNotifications - Live in-app notifications over WebSocket.
  *
@@ -14,11 +16,20 @@ const WS_URL = API_URL.replace(/^http/, 'ws').replace(/\/api\/?$/, '') + '/ws';
  * cookie to the WebSocket handshake automatically (it's a same-site request,
  * see middleware/websocket.js on the backend) - there is no token for this
  * hook to read or pass along.
+ *
+ * @param {string[]} eventTypes - event types to subscribe to on connect.
+ *   Defaults to the 3 events NotificationCenter renders as toasts; the Deal
+ *   Activity Feed (ActivityFeed.jsx) passes a 4th ('opportunity.deleted')
+ *   since it needs the full CRUD history, not just create/update/close.
+ *   Only the value passed on the *first* render is used (see eventTypesRef
+ *   below) - the subscription list is fixed for the lifetime of the socket,
+ *   same as WS_URL.
  */
-export const useNotifications = () => {
+export const useNotifications = (eventTypes = DEFAULT_EVENT_TYPES) => {
   const [notifications, setNotifications] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef(null);
+  const eventTypesRef = useRef(eventTypes);
 
   useEffect(() => {
     const websocket = new WebSocket(WS_URL);
@@ -26,7 +37,7 @@ export const useNotifications = () => {
 
     websocket.onopen = () => {
       setIsConnected(true);
-      ['opportunity.created', 'opportunity.updated', 'opportunity.closed'].forEach(
+      eventTypesRef.current.forEach(
         (eventType) => websocket.send(JSON.stringify({ type: 'subscribe', eventType }))
       );
     };
