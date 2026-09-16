@@ -150,9 +150,15 @@
 }
 
 .footer-legal-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
   color: var(--footer-text-muted);
   font-size: 0.85rem;
   text-decoration: none;
+  cursor: pointer;
   transition: color 0.2s;
 }
 

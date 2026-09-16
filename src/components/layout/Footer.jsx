@@ -145,21 +145,36 @@ export const Footer = () => {
           <div className="footer-section">
             <h3 className="footer-title">Legal</h3>
             <nav className="footer-links" role="navigation" aria-label="Legal navigation">
-              <a href="#privacy" className="footer-link">
+              <button
+                className="footer-link"
+                onClick={() => handleNavigation('/privacy-policy')}
+              >
                 Privacy Policy
-              </a>
-              <a href="#terms" className="footer-link">
+              </button>
+              <button
+                className="footer-link"
+                onClick={() => handleNavigation('/terms-of-service')}
+              >
                 Terms of Service
-              </a>
-              <a href="#security" className="footer-link">
+              </button>
+              <button
+                className="footer-link"
+                onClick={() => handleNavigation('/security')}
+              >
                 Security
-              </a>
-              <a href="#compliance" className="footer-link">
+              </button>
+              <button
+                className="footer-link"
+                onClick={() => handleNavigation('/security#compliance')}
+              >
                 Compliance
-              </a>
-              <a href="#cookies" className="footer-link">
+              </button>
+              <button
+                className="footer-link"
+                onClick={() => handleNavigation('/cookie-policy')}
+              >
                 Cookie Policy
-              </a>
+              </button>
             </nav>
           </div>
         </div>
@@ -173,17 +188,26 @@ export const Footer = () => {
           </div>
 
           <div className="footer-legal-links">
-            <a href="#privacy" className="footer-legal-link">
+            <button
+              className="footer-legal-link"
+              onClick={() => handleNavigation('/privacy-policy')}
+            >
               Privacy
-            </a>
+            </button>
             <span className="footer-separator">•</span>
-            <a href="#terms" className="footer-legal-link">
+            <button
+              className="footer-legal-link"
+              onClick={() => handleNavigation('/terms-of-service')}
+            >
               Terms
-            </a>
+            </button>
             <span className="footer-separator">•</span>
-            <a href="#cookies" className="footer-legal-link">
+            <button
+              className="footer-legal-link"
+              onClick={() => handleNavigation('/cookie-policy')}
+            >
               Cookies
-            </a>
+            </button>
           </div>
 
           <div className="footer-status">

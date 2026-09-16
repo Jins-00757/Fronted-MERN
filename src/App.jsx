@@ -11,6 +11,10 @@ import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/layout/Footer';
+import { PrivacyPolicy } from './pages/legal/PrivacyPolicy';
+import { TermsOfService } from './pages/legal/TermsOfService';
+import { SecurityPolicy } from './pages/legal/SecurityPolicy';
+import { CookiePolicy } from './pages/legal/CookiePolicy';
 import { SalesforceConnect } from './components/salesforce/SalesforceConnect';
 import { OpportunitiesList } from './components/salesforce/OpportunitiesList';
 import { LeadsBoard } from './components/salesforce/LeadsBoard';
@@ -171,6 +175,14 @@ function App() {
               proves identity on its own, and a user may open it in a
               different browser/device than they signed up in. */}
           <Route path="/verify-email" element={<VerifyEmail />} />
+
+          {/* Legal/compliance pages - linked from the Footer, reachable
+              whether signed in or not (unlike ProtectedRoute pages below,
+              which redirect a logged-out visitor to /login). */}
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/security" element={<SecurityPolicy />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
 
           {/* Protected Routes */}
           <Route
