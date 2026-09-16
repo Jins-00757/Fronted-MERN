@@ -9,11 +9,15 @@ import {
   CalendarIcon,
   CheckCircleIcon,
   AlertTriangleIcon,
+  MapPinIcon,
+  EditIcon,
 } from './ui/DashboardIcons';
 import { useAuth } from '../context/useAuth';
 import { useToast } from '../context/useToast';
 import { roleLabel as getRoleLabel } from '../utils/permissions';
 import { DangerZone } from './DangerZone';
+import { EditProfileModal } from './EditProfileModal';
+import { ChangePasswordForm } from './ChangePasswordForm';
 import './ProfileCard.css';
 
 const formatDate = (value) => {
@@ -60,6 +64,7 @@ export const ProfileCard = ({ user, onConnectSalesforce }) => {
   const { resendVerificationEmail } = useAuth();
   const toast = useToast();
   const [isSendingVerification, setIsSendingVerification] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const handleResendVerification = useCallback(async () => {
     if (isSendingVerification) return;
@@ -90,7 +95,18 @@ export const ProfileCard = ({ user, onConnectSalesforce }) => {
       transition={{ duration: 0.35, delay: 0.12 }}
     >
       <div className="profile-card-header">
-        <div className="profile-avatar" aria-hidden="true">{initial}</div>
+        <div className="profile-avatar" aria-hidden="true">
+          {user.profilePicture ? (
+            <img
+              className="profile-avatar-img"
+              src={user.profilePicture}
+              alt=""
+              onError={(e) => { e.currentTarget.replaceWith(document.createTextNode(initial)); }}
+            />
+          ) : (
+            initial
+          )}
+        </div>
         <div className="profile-identity">
           <div className="profile-name-row">
             <h3 className="profile-name">{user.name || 'Unnamed User'}</h3>
@@ -123,16 +139,22 @@ export const ProfileCard = ({ user, onConnectSalesforce }) => {
             )}
           </div>
         </div>
+        <button type="button" className="profile-edit-btn" onClick={() => setIsEditOpen(true)}>
+          <EditIcon width={14} height={14} /> Edit Profile
+        </button>
       </div>
 
       <div className="profile-info-grid">
         <InfoRow icon={BuildingIcon} label="Company" value={user.company} />
         <InfoRow icon={BriefcaseIcon} label="Job Title" value={user.jobTitle} />
         <InfoRow icon={BriefcaseIcon} label="Department" value={user.department} />
+        <InfoRow icon={MapPinIcon} label="Territory" value={user.territory} />
         <InfoRow icon={PhoneIcon} label="Phone" value={user.phoneNumber} />
         <InfoRow icon={CalendarIcon} label="Member Since" value={memberSince} />
         <InfoRow icon={CalendarIcon} label="Last Login" value={lastLogin} />
       </div>
+
+      {user.bio && <p className="profile-bio">{user.bio}</p>}
 
       <div className="profile-divider" />
 
@@ -155,7 +177,16 @@ export const ProfileCard = ({ user, onConnectSalesforce }) => {
         )}
       </div>
 
+      <div className="profile-divider" />
+
+      <div className="profile-security-section">
+        <h4 className="profile-section-heading">Security</h4>
+        <ChangePasswordForm />
+      </div>
+
       <DangerZone />
+
+      <EditProfileModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} />
     </motion.div>
   );
 };

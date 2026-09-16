@@ -318,6 +318,49 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ========================================================================
+  // PROFILE - Full profile edit (name, company, job title, department,
+  // territory, phone, bio, avatar URL) from the Profile page's edit form.
+  // Same PUT /api/auth/profile endpoint updatePreferences above uses, but
+  // sending the identity/contact fields instead of just `preferences`.
+  // ========================================================================
+
+  const updateProfile = useCallback(async (data) => {
+    try {
+      const response = await api.put('/auth/profile', data);
+
+      if (response.data.status === 'ok') {
+        setUser(response.data.data);
+        return { success: true, message: response.data.message };
+      }
+      return { success: false };
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to update profile';
+      return { success: false, error: errorMessage };
+    }
+  }, []);
+
+  // ========================================================================
+  // CHANGE PASSWORD - from the Profile page's Security section. Does not
+  // touch `user` state (the response carries no user data - see
+  // auth.controller.js's changePassword) or the session cookie; the caller
+  // stays signed in with their existing session.
+  // ========================================================================
+
+  const changePassword = useCallback(async ({ currentPassword, newPassword, confirmPassword }) => {
+    try {
+      const response = await api.post('/auth/change-password', {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      return { success: true, message: response.data.message };
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to change password';
+      return { success: false, error: errorMessage };
+    }
+  }, []);
+
+  // ========================================================================
   // EMAIL VERIFICATION - Resend the verification email, and refresh the
   // in-memory user after the VerifyEmail page confirms a token so the
   // "unverified" banner/reminder disappears without a full reload.
@@ -412,6 +455,10 @@ export const AuthProvider = ({ children }) => {
 
     // Preferences
     updatePreferences,
+
+    // Profile editing
+    updateProfile,
+    changePassword,
 
     // Email verification
     resendVerificationEmail,

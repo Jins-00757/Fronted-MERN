@@ -5,25 +5,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Logo } from '../components/ui/Logo';
 import { MailIcon, LockIcon, UserIcon, EyeIcon, EyeOffIcon, AlertIcon } from '../components/ui/AuthIcons';
 import { CheckCircleIcon } from '../components/ui/DashboardIcons';
+import { JOB_FUNCTIONS, TERRITORIES } from '../utils/profileOptions';
 import './Auth.css';
 
 const STEP_LABELS = ['Account', 'Role', 'Territory', 'Review'];
 const TOTAL_STEPS = STEP_LABELS.length;
-
-// Job-function labels only - stored in the existing `jobTitle` field.
-// Deliberately NOT an RBAC role: every signup still gets the 'user' role
-// server-side regardless of what's picked here (see auth.controller.js) -
-// letting someone self-select elevated access would be a real security
-// hole, so this step is display/profile metadata only.
-const JOB_FUNCTIONS = [
-  { value: 'Sales Representative', description: 'Own individual deals and accounts' },
-  { value: 'Account Executive', description: 'Close new business and manage key accounts' },
-  { value: 'Sales Manager', description: 'Lead a team of reps and track their pipeline' },
-  { value: 'Sales Director', description: 'Oversee multiple teams and territories' },
-  { value: 'Other', description: "None of the above quite fit" },
-];
-
-const TERRITORIES = ['North America', 'EMEA', 'APAC', 'LATAM', 'Other'];
 
 export const Signup = () => {
   const { signup } = useAuth();

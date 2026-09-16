@@ -13,6 +13,10 @@ import {
   SearchIcon,
   LayersIcon,
   LogoutIcon,
+  BuildingIcon,
+  PhoneIcon,
+  FileTextIcon,
+  UsersIcon,
 } from './DashboardIcons';
 import './CommandPalette.css';
 
@@ -28,7 +32,11 @@ const buildCommands = ({ navigate, toggleTheme, logout, theme, isSalesforceConne
 
   if (isSalesforceConnected) {
     commands.push(
+      { id: 'leads', label: 'Leads', hint: 'Go to', icon: UsersIcon, action: () => navigate('/leads') },
+      { id: 'accounts', label: 'Accounts', hint: 'Go to', icon: BuildingIcon, action: () => navigate('/accounts') },
+      { id: 'contacts', label: 'Contacts', hint: 'Go to', icon: PhoneIcon, action: () => navigate('/contacts') },
       { id: 'opportunities', label: 'Opportunities', hint: 'Go to', icon: ListIcon, action: () => navigate('/opportunities') },
+      { id: 'quotes', label: 'Quotes', hint: 'Go to', icon: FileTextIcon, action: () => navigate('/quotes') },
       { id: 'analytics', label: 'Analytics & Reporting', hint: 'Go to', icon: HealthIcon, action: () => navigate('/analytics') },
       { id: 'saas-metrics', label: 'SaaS Metrics', hint: 'Go to', icon: TrendingUpIcon, action: () => navigate('/saas-metrics') },
       { id: 'search', label: 'Search Opportunities', hint: 'Go to', icon: SearchIcon, action: () => navigate('/search') },

@@ -54,13 +54,17 @@
   color: var(--text-secondary);
 }
 
-.bulk-form select {
+.bulk-form select,
+.bulk-form input[type="text"],
+.bulk-form input[type="date"] {
   padding: 0.6rem 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.9rem;
   background: var(--bg-card);
   color: var(--text-primary);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .bulk-records-input {
@@ -77,10 +81,72 @@
 }
 
 .bulk-records-input:focus,
-.bulk-form select:focus {
+.bulk-form select:focus,
+.bulk-form input[type="text"]:focus,
+.bulk-form input[type="date"]:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* ---- Import/Export tabs -------------------------------------------------- */
+
+.bulk-tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.bulk-tab {
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.bulk-tab:hover {
+  color: var(--text-primary);
+}
+
+.bulk-tab.active {
+  background: var(--bg-card);
+  color: #667eea;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.bulk-template-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.bulk-template-btn:hover:not(:disabled) {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.bulk-template-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .bulk-input-mode-toggle {
@@ -236,10 +302,46 @@
   font-size: 0.9rem;
 }
 
-.bulk-jobs-history h2 {
+.bulk-jobs-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.bulk-jobs-history-header h2 {
   font-size: 1.2rem;
   color: var(--text-primary);
-  margin-bottom: 1rem;
+  margin: 0;
+}
+
+.bulk-refresh-btn,
+.bulk-details-btn {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.bulk-refresh-btn:hover:not(:disabled),
+.bulk-details-btn:hover:not(:disabled) {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.bulk-refresh-btn:disabled,
+.bulk-details-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .bulk-jobs-table {
@@ -303,4 +405,47 @@
     display: block;
     overflow-x: auto;
   }
+}
+
+/* ---- Job detail modal ----------------------------------------------------- */
+
+.job-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.job-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.job-detail-row strong {
+  color: var(--text-primary);
+}
+
+.job-detail-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.job-detail-outcome {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.job-detail-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
 }

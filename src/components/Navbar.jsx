@@ -15,6 +15,9 @@ import {
   TrendingUpIcon,
   LayersIcon,
   GridIcon,
+  BuildingIcon,
+  PhoneIcon,
+  FileTextIcon,
 } from './ui/DashboardIcons';
 import { canManageSalesforceRecords } from '../utils/permissions';
 import './Navbar.css';
@@ -120,22 +123,34 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
-  // Grouped and ordered to mirror the actual sales process rather than
-  // alphabetically/by when each feature happened to ship: a lead moves
-  // through Leads -> Opportunities -> Contracts, with Map alongside them as
-  // a territory/account view over that same pipeline data. Insights (report
-  // on the pipeline) and Tools (cross-cutting utilities) come after the
-  // operational stages, and Admin - Bulk Operations mutates Salesforce data
-  // at scale and is restricted to manager/admin on the backend (see
-  // salesforce.routes.js) - is last and only shown to roles that can
-  // actually use it.
+  // Grouped and ordered to mirror the actual sales process and the
+  // underlying Salesforce data relationships, rather than alphabetically or
+  // by when each feature happened to ship:
+  //   Lead (unqualified prospect)
+  //     -> converts into -> Account (the company) + Contact (people there)
+  //     -> Opportunity (the deal being pursued at that Account)
+  //     -> Quote (a priced proposal for that Opportunity)
+  //     -> Contract (the signed agreement once the deal is won)
+  // Account parents both Contact and Opportunity (AccountId on each), and
+  // Opportunity parents Quote (OpportunityId) - so Accounts/Contacts come
+  // right after Leads and before Opportunities, and Quotes sit between
+  // Opportunities and Contracts, matching that parent/child order. Map is
+  // last in this group since it's a territory view *over* Accounts rather
+  // than a pipeline stage of its own. Insights (report on the pipeline) and
+  // Tools (cross-cutting utilities) come after the operational stages, and
+  // Admin - Bulk Operations mutates Salesforce data at scale and is
+  // restricted to manager/admin on the backend (see salesforce.routes.js) -
+  // is last and only shown to roles that can actually use it.
   const moreLinkGroups = user?.isSalesforceConnected
     ? [
         {
           label: 'Pipeline',
           links: [
             { path: '/leads', label: 'Leads', icon: UsersIcon },
+            { path: '/accounts', label: 'Accounts', icon: BuildingIcon },
+            { path: '/contacts', label: 'Contacts', icon: PhoneIcon },
             { path: '/opportunities', label: 'Opportunities', icon: BriefcaseIcon },
+            { path: '/quotes', label: 'Quotes', icon: FileTextIcon },
             { path: '/contracts', label: 'Contracts', icon: ListIcon },
             { path: '/map', label: 'Map', icon: MapPinIcon },
           ],

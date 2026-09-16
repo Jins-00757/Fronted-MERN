@@ -16,6 +16,9 @@ import { OpportunitiesList } from './components/salesforce/OpportunitiesList';
 import { LeadsBoard } from './components/salesforce/LeadsBoard';
 import { ContractsView } from './components/salesforce/ContractsView';
 import { AccountsMap } from './components/salesforce/AccountsMap';
+import { AccountsView } from './components/salesforce/AccountsView';
+import { ContactsView } from './components/salesforce/ContactsView';
+import { QuotesView } from './components/salesforce/QuotesView';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { SaaSMetricsDashboard } from './components/SaaSMetricsDashboard';
 import { AdvancedSearch } from './components/AdvancedSearch';
@@ -219,6 +222,32 @@ function App() {
             }
           />
 
+          {/* Accounts, Contacts & the Quotation/Proposal Generator */}
+          <Route
+            path="/accounts"
+            element={
+              <ProtectedRoute>
+                <AccountsView />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contacts"
+            element={
+              <ProtectedRoute>
+                <ContactsView />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quotes"
+            element={
+              <ProtectedRoute>
+                <QuotesView />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Analytics & Search - Day 6 Features */}
           <Route
             path="/analytics"
@@ -293,6 +322,14 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
   const toast = useToast();
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  // Distinguishes "genuinely zero" from "we don't actually know" - without
+  // this, a failed fetch (e.g. the connected Salesforce org being down) left
+  // `stats` null, which the cards below rendered as a plain 0 with the same
+  // caption a real zero would get ("Open deals") - indistinguishable from
+  // an account that simply has no deals yet. See the error banner/footer
+  // text below for how this is surfaced.
+  const [statsError, setStatsError] = useState(null);
+  const [statsRefreshKey, setStatsRefreshKey] = useState(0);
 
   // Role-aware dashboard section: manager/admin get a live team summary
   // (their own team for a manager, org-wide by default for admin - see
@@ -346,6 +383,7 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
     let cancelled = false;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount loading flag, not derivable from props/state
     setStatsLoading(true);
+    setStatsError(null);
 
     const fetchStats = async () => {
       try {
@@ -378,7 +416,10 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
         });
       } catch (error) {
         console.error('Error fetching Salesforce stats:', error);
-        if (!cancelled) setStats(null);
+        if (!cancelled) {
+          setStats(null);
+          setStatsError(error.message || 'Failed to load data from Salesforce');
+        }
       } finally {
         if (!cancelled) setStatsLoading(false);
       }
@@ -388,7 +429,7 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
     return () => {
       cancelled = true;
     };
-  }, [salesforceConnected]);
+  }, [salesforceConnected, statsRefreshKey]);
 
   const opportunityCount = stats?.totalFetched ?? 0;
 
@@ -520,6 +561,49 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
           </div>
         )}
       </div>
+
+      {salesforceConnected && statsError && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+            padding: '0.85rem 1.1rem',
+            marginBottom: '1rem',
+            borderRadius: '8px',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#991b1b',
+            fontSize: '0.88rem',
+          }}
+        >
+          <span>
+            <strong>Couldn't load live data from Salesforce.</strong> The numbers below are not shown because
+            the request failed, not because your pipeline is empty. {statsError}
+          </span>
+          <button
+            onClick={() => setStatsRefreshKey((k) => k + 1)}
+            disabled={statsLoading}
+            style={{
+              padding: '0.4rem 0.85rem',
+              borderRadius: '6px',
+              border: '1px solid #991b1b',
+              background: 'transparent',
+              color: '#991b1b',
+              cursor: statsLoading ? 'default' : 'pointer',
+              fontWeight: 600,
+              fontSize: '0.82rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {statsLoading ? 'Retrying...' : 'Retry'}
+          </button>
+        </div>
+      )}
+
       <motion.div
         className="report-metrics"
         variants={gridVariants}
@@ -531,39 +615,41 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
           label="Active Deals"
           icon={BriefcaseIcon}
           tone="purple"
-          numericValue={salesforceConnected ? stats?.activeDeals ?? 0 : 0}
-          format={(n) => Math.round(n)}
-          footer={salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : 'Open deals') : 'Connect Salesforce to view'}
+          numericValue={salesforceConnected && !statsError ? stats?.activeDeals ?? 0 : 0}
+          format={(n) => (statsError ? '—' : Math.round(n))}
+          footer={salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : statsError ? 'Unable to load' : 'Open deals') : 'Connect Salesforce to view'}
         />
 
         <MetricCard
           label="Closed Won"
           icon={CheckCircleIcon}
           tone="green"
-          numericValue={salesforceConnected ? stats?.closedWon ?? 0 : 0}
-          format={(n) => Math.round(n)}
-          footer={salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : 'Deals won') : 'Connect Salesforce to view'}
+          numericValue={salesforceConnected && !statsError ? stats?.closedWon ?? 0 : 0}
+          format={(n) => (statsError ? '—' : Math.round(n))}
+          footer={salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : statsError ? 'Unable to load' : 'Deals won') : 'Connect Salesforce to view'}
         />
 
         <MetricCard
           label="Pipeline Value"
           icon={DollarIcon}
           tone="red"
-          numericValue={salesforceConnected ? stats?.pipelineValue ?? 0 : 0}
-          format={(n) => `$${Math.round(n).toLocaleString()}`}
-          footer={salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : 'Open pipeline') : 'Connect Salesforce to view'}
+          numericValue={salesforceConnected && !statsError ? stats?.pipelineValue ?? 0 : 0}
+          format={(n) => (statsError ? '—' : `$${Math.round(n).toLocaleString()}`)}
+          footer={salesforceConnected ? (statsLoading ? 'Loading from Salesforce...' : statsError ? 'Unable to load' : 'Open pipeline') : 'Connect Salesforce to view'}
         />
 
         <MetricCard
           label="Opportunities"
           icon={ListIcon}
           tone="indigo"
-          numericValue={salesforceConnected ? opportunityCount : 0}
-          format={(n) => Math.round(n)}
+          numericValue={salesforceConnected && !statsError ? opportunityCount : 0}
+          format={(n) => (statsError ? '—' : Math.round(n))}
           footer={
             salesforceConnected ? (
               statsLoading ? (
                 'Loading from Salesforce...'
+              ) : statsError ? (
+                'Unable to load'
               ) : (
                 <Link to="/opportunities">View all opportunities →</Link>
               )

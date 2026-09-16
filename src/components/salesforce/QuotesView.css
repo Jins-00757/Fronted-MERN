@@ -1,0 +1,207 @@
+/* ========================================================================
+   QUOTES PAGE - filterable table of Salesforce Quotes, launches QuoteBuilder.
+   ======================================================================== */
+
+.quotes-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.quotes-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+}
+
+.quotes-header .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quotes-header .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+}
+
+.quotes-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.quotes-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 320px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+}
+
+.quotes-search-wrap input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  flex: 1;
+}
+
+.quotes-filters select {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.quotes-active-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.quotes-active-filter button {
+  border: none;
+  background: none;
+  color: #6366f1;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.quotes-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.quotes-loading,
+.quotes-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.quotes-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.quotes-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  background: var(--bg-card);
+}
+
+.quotes-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-subtle);
+}
+
+.quotes-table td {
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.quotes-table tr {
+  cursor: pointer;
+}
+
+.quotes-table tr:hover td {
+  background: var(--bg-hover);
+}
+
+.quotes-table tr:last-child td {
+  border-bottom: none;
+}
+
+.quotes-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.quotes-number-cell {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.quotes-total-cell {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.quote-status-pill {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.quote-status-draft {
+  background: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
+
+.quote-status-pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+}
+
+.quote-status-approved {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+}
+
+.quote-status-won {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.quote-status-lost {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
