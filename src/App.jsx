@@ -32,7 +32,7 @@ import { Profile } from './pages/Profile';
 import api from './services/api';
 import { MetricCard } from './components/ui/ReportWidgets';
 import { gridVariants } from './components/ui/reportWidgetUtils';
-import { BriefcaseIcon, CheckCircleIcon, DollarIcon, ListIcon, UsersIcon, TrendingUpIcon } from './components/ui/DashboardIcons';
+import { BriefcaseIcon, CheckCircleIcon, DollarIcon, ListIcon, UsersIcon, TrendingUpIcon, DownloadIcon, LinkIcon } from './components/ui/DashboardIcons';
 import { isElevatedRole } from './utils/permissions';
 import { CommandPalette } from './components/ui/CommandPalette';
 import { GlobalActivityToaster } from './components/GlobalActivityToaster';
@@ -483,7 +483,7 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #157a6e 0%, #499f68 100%)',
           padding: '2rem',
           borderRadius: '8px',
           marginBottom: '2rem',
@@ -494,42 +494,46 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
         <p style={{ margin: 0, opacity: 0.9 }}>Welcome back, {user?.name || 'User'}!</p>
       </motion.div>
 
-      {/* Salesforce Connection Status - Day 3 */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.08 }}
-        style={{
-          background: salesforceConnected ? '#f0fdf4' : '#fef2f2',
-          border: `2px solid ${salesforceConnected ? '#10b981' : '#ef4444'}`,
-          padding: '1.5rem',
-          borderRadius: '8px',
-          marginBottom: '2rem'
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h3 style={{ margin: 0, marginBottom: '0.5rem', color: '#1f2937' }}>
-              {salesforceConnected ? '✓' : '○'} Salesforce Connection
-            </h3>
-            <p style={{
-              margin: 0,
-              color: salesforceConnected ? '#10b981' : '#ef4444',
-              fontSize: '0.9rem'
-            }}>
-              {salesforceConnected
-                ? `Connected as ${user?.salesforceOrgName || 'Salesforce Org'}`
-                : 'Not connected'}
-            </p>
-          </div>
-          {!salesforceConnected && (
+      {/* Salesforce Connection Status - only shown while disconnected; once
+          connected, the topbar's "Salesforce" badge already covers this, so
+          repeating it here on every dashboard visit is just noise. */}
+      {!salesforceConnected && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.08 }}
+          style={{
+            background: '#fef2f2',
+            border: '2px solid var(--danger-color)',
+            padding: '1.5rem',
+            borderRadius: '8px',
+            marginBottom: '2rem'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h3 style={{
+                margin: 0,
+                marginBottom: '0.5rem',
+                color: '#1f2937',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}>
+                <LinkIcon width={18} height={18} />
+                Salesforce Connection
+              </h3>
+              <p style={{ margin: 0, color: 'var(--danger-color)', fontSize: '0.9rem' }}>
+                Not connected
+              </p>
+            </div>
             <motion.button
               onClick={onSalesforceConnect}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               style={{
                 padding: '0.75rem 1.5rem',
-                background: '#667eea',
+                background: 'var(--primary-color)',
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',
@@ -540,9 +544,9 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
             >
               Connect Salesforce
             </motion.button>
-          )}
-        </div>
-      </motion.div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Dashboard Stats */}
       <div style={{
@@ -559,6 +563,9 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
             <button
               onClick={() => handleExportStats('csv')}
               style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
                 padding: '0.5rem 0.9rem',
                 borderRadius: '6px',
                 border: '1px solid #d1d5db',
@@ -569,11 +576,14 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
                 fontSize: '0.85rem',
               }}
             >
-              📥 Export CSV
+              <DownloadIcon width={15} height={15} /> Export CSV
             </button>
             <button
               onClick={() => handleExportStats('pdf')}
               style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
                 padding: '0.5rem 0.9rem',
                 borderRadius: '6px',
                 border: '1px solid #d1d5db',
@@ -584,7 +594,7 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
                 fontSize: '0.85rem',
               }}
             >
-              📥 Export PDF
+              <DownloadIcon width={15} height={15} /> Export PDF
             </button>
           </div>
         )}
