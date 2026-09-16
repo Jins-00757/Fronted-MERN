@@ -13,8 +13,7 @@
   top: 0;
   align-self: flex-start;
   height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background-color: var(--navbar-bg);
@@ -38,7 +37,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.9rem 0.75rem;
+  padding: 0.6rem 0.75rem;
   border-bottom: 1px solid var(--navbar-border);
   flex-shrink: 0;
 }
@@ -95,31 +94,41 @@
 
 .sidebar.collapsed .sidebar-brand {
   flex-direction: column;
-  gap: 0.6rem;
-  padding: 0.9rem 0.5rem;
+  gap: 0.5rem;
+  padding: 0.6rem 0.5rem;
 }
 
 /* ---------- Nav links ---------- */
 
+/* Sized to fit every current link (Dashboard + Pipeline/Insights/Tools/
+   Admin) within a typical viewport with no scrollbar - overflow is still
+   handled (auto, scrollbar hidden below) as a safety net for a very short
+   window or a future addition, rather than clipping content outright. */
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 0.75rem 0.6rem 1.5rem;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  padding: 0.4rem 0.5rem 0.6rem;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.1rem;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-group {
-  margin-top: 1.1rem;
+  margin-top: 0.6rem;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.1rem;
 }
 
 .sidebar-group-label {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem 0.1rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -129,14 +138,14 @@
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.7rem;
   width: 100%;
-  padding: 0.55rem 0.6rem;
+  padding: 0.4rem 0.6rem;
   border: none;
   border-radius: 8px;
   background: none;
   color: var(--navbar-text);
-  font-size: 0.9rem;
+  font-size: 0.87rem;
   text-align: left;
   cursor: pointer;
   white-space: nowrap;
