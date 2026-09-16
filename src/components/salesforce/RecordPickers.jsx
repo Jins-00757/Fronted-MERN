@@ -10,7 +10,12 @@ import './RecordPickers.css';
  * working code; every *new* picker need goes through here instead of being
  * copy-pasted a third/fourth time).
  */
-const useDebouncedSearch = (query, minLength, fetcher) => {
+// `resetKey` is an extra value (besides the query text itself) that should
+// also trigger a re-fetch when it changes - e.g. ProductPicker's catalog
+// depends on which Opportunity is selected, not just what's typed, so
+// choosing a different Opportunity needs a fresh fetch even though the
+// search box's text didn't change.
+const useDebouncedSearch = (query, minLength, fetcher, resetKey) => {
   const [results, setResults] = useState([]);
   const debounceRef = useRef(null);
 
@@ -27,8 +32,8 @@ const useDebouncedSearch = (query, minLength, fetcher) => {
     }, 300);
 
     return () => clearTimeout(debounceRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetcher is re-created per render by design (it closes over accountId/opportunityId filters); including it would re-run on every keystroke's render, not just query changes
-  }, [query, minLength]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetcher is re-created per render by design (it closes over accountId/opportunityId filters); including it would re-run on every keystroke's render, not just query/resetKey changes
+  }, [query, minLength, resetKey]);
 
   return results;
 };
@@ -137,11 +142,16 @@ export const ProductPicker = ({ opportunityId, onSelect, disabled = false }) => 
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  const results = useDebouncedSearch(query, 1, (q) => {
+  // minLength 0 (rather than the Account/Opportunity pickers' 2) - with a
+  // catalog this small, requiring the user to type before seeing anything
+  // just reads as "the product list is empty/broken". opportunityId as the
+  // reset key means picking a different Opportunity re-fetches its price
+  // book's catalog immediately, not just on the next keystroke.
+  const results = useDebouncedSearch(query, 0, (q) => {
     if (!opportunityId) return Promise.resolve([]);
-    const params = new URLSearchParams({ opportunityId, search: q, limit: '10' });
+    const params = new URLSearchParams({ opportunityId, search: q, limit: '20' });
     return api.get(`/salesforce/quotes/products?${params.toString()}`).then((res) => res.data.data || []);
-  });
+  }, opportunityId);
 
   return (
     <div className="record-picker product-picker">
