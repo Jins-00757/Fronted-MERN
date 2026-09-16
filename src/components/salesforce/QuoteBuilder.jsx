@@ -246,10 +246,19 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
     if (!currentQuoteId) return;
     setIsDownloading(true);
     try {
-      const res = await api.get(`/salesforce/quotes/${currentQuoteId}/pdf`);
+      // Longer timeout than the axios default (30s): this endpoint fetches
+      // the quote + line items from Salesforce and renders a PDF server-side
+      // before responding, which is inherently slower than a plain CRUD
+      // call - and on a free-tier host that's spun down from inactivity,
+      // the cold start alone can eat 20-30s before that work even starts.
+      const res = await api.get(`/salesforce/quotes/${currentQuoteId}/pdf`, { timeout: 60000 });
       await downloadFileFromLink(res.data.data);
     } catch (err) {
-      toast.error(err.message || 'Failed to generate quote PDF');
+      toast.error(
+        err.code === 'ECONNABORTED'
+          ? 'Generating the PDF is taking longer than expected - the server may be waking up from idle. Please try again.'
+          : err.message || 'Failed to generate quote PDF'
+      );
     } finally {
       setIsDownloading(false);
     }
@@ -260,13 +269,24 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
     if (!currentQuoteId) return;
     setIsSendingEmail(true);
     try {
-      await api.post(`/salesforce/quotes/${currentQuoteId}/email`, { to: emailTo, recipientName: emailName });
+      // Same reasoning as handleDownloadPdf's timeout - this does the same
+      // PDF generation plus an outbound SMTP send on top, both slower than
+      // the 30s default is built for.
+      await api.post(
+        `/salesforce/quotes/${currentQuoteId}/email`,
+        { to: emailTo, recipientName: emailName },
+        { timeout: 60000 }
+      );
       toast.success(`Quote emailed to ${emailTo}`);
       setEmailPanelOpen(false);
       setEmailTo('');
       setEmailName('');
     } catch (err) {
-      toast.error(err.message || 'Failed to email quote');
+      toast.error(
+        err.code === 'ECONNABORTED'
+          ? 'Sending is taking longer than expected - the server may be waking up from idle. Please try again in a moment.'
+          : err.message || 'Failed to email quote'
+      );
     } finally {
       setIsSendingEmail(false);
     }

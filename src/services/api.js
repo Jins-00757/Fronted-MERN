@@ -35,6 +35,11 @@ api.interceptors.response.use(
     err.status = error.response?.status;
     err.details = error.response?.data?.errors;
     err.response = error.response;
+    // Preserved so callers can distinguish a client-side timeout
+    // (ECONNABORTED - axios never got a response at all) from a real server
+    // error response, e.g. to show "the server may be waking up" instead of
+    // a generic failure message on a slow endpoint.
+    err.code = error.code;
 
     return Promise.reject(err);
   }
