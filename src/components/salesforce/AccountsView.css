@@ -24,7 +24,7 @@
   padding: 0.6rem 1.1rem;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  background: linear-gradient(135deg, #157a6e, #499f68);
   color: #fff;
   font-weight: 600;
   font-size: 0.9rem;
@@ -34,7 +34,7 @@
 
 .accounts-header .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 6px 16px rgba(21, 122, 110, 0.3);
 }
 
 .accounts-filters {
@@ -107,8 +107,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(99, 102, 241, 0.15));
-  color: #6366f1;
+  background: linear-gradient(135deg, rgba(21, 122, 110, 0.15), rgba(73, 159, 104, 0.15));
+  color: #157a6e;
 }
 
 .account-card-name {
@@ -248,7 +248,7 @@
   margin-left: auto;
   border: none;
   background: none;
-  color: #6366f1;
+  color: #157a6e;
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 600;

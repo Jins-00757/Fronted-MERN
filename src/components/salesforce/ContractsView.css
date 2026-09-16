@@ -24,7 +24,7 @@
   padding: 0.6rem 1.1rem;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  background: linear-gradient(135deg, #157a6e, #499f68);
   color: #fff;
   font-weight: 600;
   font-size: 0.9rem;
@@ -34,7 +34,7 @@
 
 .contracts-header .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 6px 16px rgba(21, 122, 110, 0.3);
 }
 
 .contracts-alert {
@@ -117,7 +117,7 @@
 
 .contract-row:hover {
   transform: translateY(-1px);
-  border-left-color: #6366f1;
+  border-left-color: #157a6e;
 }
 
 .contract-row.expiring-soon {
@@ -213,7 +213,7 @@
 .contract-term-bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #0ea5e9, #6366f1);
+  background: linear-gradient(90deg, #157a6e, #499f68);
   transition: width 0.4s ease;
 }
 
@@ -306,7 +306,7 @@
   margin-left: auto;
   border: none;
   background: none;
-  color: #6366f1;
+  color: #157a6e;
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 600;

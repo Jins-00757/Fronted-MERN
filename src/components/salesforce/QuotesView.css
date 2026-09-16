@@ -23,7 +23,7 @@
   padding: 0.6rem 1.1rem;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  background: linear-gradient(135deg, #157a6e, #499f68);
   color: #fff;
   font-weight: 600;
   font-size: 0.9rem;
@@ -33,7 +33,7 @@
 
 .quotes-header .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 6px 16px rgba(21, 122, 110, 0.3);
 }
 
 .quotes-filters {
@@ -89,7 +89,7 @@
 .quotes-active-filter button {
   border: none;
   background: none;
-  color: #6366f1;
+  color: #157a6e;
   cursor: pointer;
   font-size: 0.78rem;
   font-weight: 600;
