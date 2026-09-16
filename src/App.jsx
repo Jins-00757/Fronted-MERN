@@ -318,7 +318,10 @@ function App() {
         />
       )}
 
-      <Footer />
+      {/* Marketing/legal chrome - shown on the logged-out screens (login,
+          signup, legal pages) same as before, but hidden once authenticated
+          so it doesn't compete with the app's own in-product navigation. */}
+      {!isAuthenticated && <Footer />}
     </div>
   );
 }
