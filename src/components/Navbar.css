@@ -98,148 +98,26 @@
   display: block;
 }
 
-/* This breakpoint (and the two others toggling .navbar-menu-desktop /
-   .navbar-menu below) must all move together - they switch between the
-   inline "Dashboard + More" nav and the hamburger menu as one unit. 1024px
-   rather than 768px: with Salesforce connected, .navbar-auth (theme
-   toggle + notification bell + connection badge + full user-profile
-   button) alone measures ~415px, which left the inline nav only ~250-300px
-   to work with below ~1000px - not enough room for "Dashboard" + "More",
-   so "More" visually overlapped the theme toggle button instead of wrapping
-   (flex `min-width: 0` lets a flex item shrink below its content's natural
-   size, so the overflow renders on top of the next item rather than
-   reflowing). Confirmed no overlap at any width once both nav modes switch
-   together above 1024px. */
+/* Below 1024px (matches Sidebar.css's own breakpoint for its off-canvas
+   drawer), this button becomes visible and opens that drawer via
+   onToggleSidebar - at/above it, the sidebar is a persistent rail and this
+   button is unnecessary. */
 @media (max-width: 1024px) {
   .navbar-toggle {
     display: flex;
   }
 }
 
-/* Navigation Menu - Desktop: Dashboard + "More" dropdown (no horizontal
-   scroll strip - a crowded link list collapses into the dropdown instead of
-   ever threatening to overflow the page again). */
-.navbar-menu-desktop {
-  display: flex;
-  gap: 0.25rem;
-  flex: 1;
-  min-width: 0;
-  align-items: center;
-}
-
-@media (max-width: 1024px) {
-  .navbar-menu-desktop {
-    display: none;
-  }
-}
-
-.navbar-link {
-  background: none;
-  border: none;
-  color: var(--navbar-text);
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  font-size: 0.95rem;
-  transition: background-color 0.2s;
-  border-radius: 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.navbar-link:hover {
-  background-color: var(--navbar-hover);
-}
-
-.navbar-link-icon {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.navbar-link-icon svg {
-  flex-shrink: 0;
-  opacity: 0.75;
-}
-
-.navbar-link:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
-}
-
-.more-menu-container {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.more-menu-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.more-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 0.5rem;
-  background-color: var(--navbar-bg);
-  border: 1px solid var(--navbar-border);
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 200px;
-  z-index: 1001;
-  /* Pipeline/Insights/Tools/Admin together can now run to 10+ rows (Accounts,
-     Contacts, Leads, Opportunities, Quotes, Contracts, Map, Analytics, SaaS
-     Metrics, Search, Bulk Operations) - tall enough to exceed the viewport
-     on a short window. Without a capped height + its own scrollbar, the
-     overflow just rendered below the visible page with no way to reach it,
-     so the last group (Admin - Bulk Operations) was effectively invisible.
-     max-height is viewport-relative and capped so it never grows unbounded
-     on a tall screen either. */
-  max-height: min(70vh, 520px);
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0.4rem 0;
-}
-
-/* Navigation Menu - Mobile: flat list inside the hamburger overlay */
-.navbar-menu {
-  display: none;
-  gap: 0;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-@media (max-width: 1024px) {
-  .navbar-menu.active {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: var(--navbar-bg);
-    border-bottom: 1px solid var(--navbar-border);
-    padding: 1rem 0;
-    gap: 0;
-    width: 100%;
-  }
-
-  .navbar-menu .navbar-link {
-    width: 100%;
-    text-align: left;
-    padding: 0.75rem 1rem;
-    border-radius: 0;
-  }
-}
-
-/* Auth Section */
+/* Auth Section - margin-left:auto (rather than relying on
+   justify-content:space-between on .navbar-container) keeps this pinned to
+   the right whether or not .navbar-brand/.navbar-toggle are visible at the
+   current width, instead of assuming a fixed number of siblings. */
 .navbar-auth {
   display: flex;
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .auth-loading {
@@ -494,15 +372,6 @@
 .dropdown-item svg {
   flex-shrink: 0;
   opacity: 0.75;
-}
-
-.dropdown-section-label {
-  padding: 0.5rem 1rem 0.3rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--navbar-text-muted);
 }
 
 .dropdown-item:hover:not(:disabled) {

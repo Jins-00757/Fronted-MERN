@@ -7,20 +7,7 @@ import { NotificationCenter } from './NotificationCenter';
 import { useNotifications } from '../hooks/useNotifications';
 import { Logo } from './ui/Logo';
 import { SunIcon, MoonIcon } from './ui/ThemeIcons';
-import {
-  SearchIcon,
-  UsersIcon,
-  BriefcaseIcon,
-  ListIcon,
-  MapPinIcon,
-  TrendingUpIcon,
-  LayersIcon,
-  GridIcon,
-  BuildingIcon,
-  PhoneIcon,
-  FileTextIcon,
-} from './ui/DashboardIcons';
-import { canManageSalesforceRecords } from '../utils/permissions';
+import { SearchIcon } from './ui/DashboardIcons';
 import './Navbar.css';
 
 // Settings toggle for the "send when deal stage changes" / daily summary
@@ -109,23 +96,27 @@ const VerifyEmailReminder = () => {
 // its own separate one for cross-tab toasts - see that file's docstring).
 
 /**
- * Navbar Component - Professional Navigation with Authentication State
+ * Navbar Component - the app's topbar/utility strip.
+ *
+ * Route navigation itself lives in Sidebar.jsx (the left nav rail) - this
+ * component only owns cross-page utilities that don't belong to any one
+ * section: search/command palette, theme, notifications, Salesforce
+ * connection status, and the user menu. The hamburger button here opens
+ * Sidebar's mobile off-canvas drawer (see onToggleSidebar), it no longer
+ * opens a nav menu of its own.
  *
  * Features:
- * - Responsive mobile/desktop navigation
  * - User profile dropdown menu
  * - Authentication status display
  * - Smooth transitions and hover effects
  * - Accessibility compliant (ARIA labels, keyboard navigation)
  */
-export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
+export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSidebar }) => {
   const { isAuthenticated, user, logout, isLoading, disconnectSalesforce } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
   const { notifications, isConnected, clearNotifications } = useNotifications();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -143,70 +134,10 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
     setUnreadCount(unseen);
   }, [notifications, isNotificationsOpen]);
 
-  // Grouped and ordered to mirror the actual sales process and the
-  // underlying Salesforce data relationships, rather than alphabetically or
-  // by when each feature happened to ship:
-  //   Lead (unqualified prospect)
-  //     -> converts into -> Account (the company) + Contact (people there)
-  //     -> Opportunity (the deal being pursued at that Account)
-  //     -> Quote (a priced proposal for that Opportunity)
-  //     -> Contract (the signed agreement once the deal is won)
-  // Account parents both Contact and Opportunity (AccountId on each), and
-  // Opportunity parents Quote (OpportunityId) - so Accounts/Contacts come
-  // right after Leads and before Opportunities, and Quotes sit between
-  // Opportunities and Contracts, matching that parent/child order. Map is
-  // last in this group since it's a territory view *over* Accounts rather
-  // than a pipeline stage of its own. Insights (report on the pipeline) and
-  // Tools (cross-cutting utilities) come after the operational stages, and
-  // Admin - Bulk Operations mutates Salesforce data at scale and is
-  // restricted to manager/admin on the backend (see salesforce.routes.js) -
-  // is last and only shown to roles that can actually use it.
-  const moreLinkGroups = user?.isSalesforceConnected
-    ? [
-        {
-          label: 'Pipeline',
-          links: [
-            { path: '/leads', label: 'Leads', icon: UsersIcon },
-            { path: '/accounts', label: 'Accounts', icon: BuildingIcon },
-            { path: '/contacts', label: 'Contacts', icon: PhoneIcon },
-            { path: '/opportunities', label: 'Opportunities', icon: BriefcaseIcon },
-            { path: '/quotes', label: 'Quotes', icon: FileTextIcon },
-            { path: '/contracts', label: 'Contracts', icon: ListIcon },
-            { path: '/map', label: 'Map', icon: MapPinIcon },
-          ],
-        },
-        {
-          label: 'Insights',
-          links: [
-            { path: '/analytics', label: 'Analytics', icon: TrendingUpIcon },
-            { path: '/saas-metrics', label: 'SaaS Metrics', icon: LayersIcon },
-          ],
-        },
-        {
-          label: 'Tools',
-          links: [{ path: '/search', label: 'Search', icon: SearchIcon }],
-        },
-        ...(canManageSalesforceRecords(user)
-          ? [
-              {
-                label: 'Admin',
-                links: [{ path: '/bulk-operations', label: 'Bulk Operations', icon: GridIcon }],
-              },
-            ]
-          : []),
-      ]
-    : [];
-
-  // Flat form for callers that just need "is there anything to show" or a
-  // plain list (the mobile hamburger menu keeps a single flat list rather
-  // than repeating desktop's section labels, to stay compact on a phone).
-  const moreLinks = moreLinkGroups.flatMap((group) => group.links);
-
   const handleLogout = useCallback(async () => {
     try {
       await logout();
       setIsDropdownOpen(false);
-      setIsMobileMenuOpen(false);
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -220,17 +151,11 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
 
   const handleNavigation = useCallback((path) => {
     navigate(path);
-    setIsMobileMenuOpen(false);
     setIsDropdownOpen(false);
-    setIsMoreMenuOpen(false);
   }, [navigate]);
 
   const toggleDropdown = useCallback(() => {
     setIsDropdownOpen(prev => !prev);
-  }, []);
-
-  const toggleMoreMenu = useCallback(() => {
-    setIsMoreMenuOpen(prev => !prev);
   }, []);
 
   const toggleNotifications = useCallback(() => {
@@ -247,10 +172,6 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
     });
   }, []);
 
-  const toggleMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(prev => !prev);
-  }, []);
-
   return (
     <nav className="navbar" role="navigation" aria-label="Main navigation">
       <div className="navbar-container">
@@ -265,90 +186,19 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
           </button>
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="navbar-toggle"
-          onClick={toggleMobileMenu}
-          aria-label="Toggle navigation menu"
-          aria-expanded={isMobileMenuOpen}
-        >
-          <span className="toggle-icon"></span>
-          <span className="toggle-icon"></span>
-          <span className="toggle-icon"></span>
-        </button>
-
-        {/* Navigation Items - Desktop: Dashboard + "More" dropdown */}
+        {/* Sidebar Toggle - only meaningful once authenticated, since
+            that's the only time Sidebar itself is rendered */}
         {isAuthenticated && (
-          <div className="navbar-menu-desktop">
-            <button
-              className="navbar-link"
-              onClick={() => handleNavigation('/')}
-            >
-              Dashboard
-            </button>
-
-            {moreLinks.length > 0 && (
-              <div className="more-menu-container">
-                <button
-                  className="navbar-link more-menu-toggle"
-                  onClick={toggleMoreMenu}
-                  aria-label="More navigation options"
-                  aria-expanded={isMoreMenuOpen}
-                  aria-haspopup="menu"
-                >
-                  More
-                  <span className={`dropdown-arrow ${isMoreMenuOpen ? 'open' : ''}`}>▼</span>
-                </button>
-
-                {isMoreMenuOpen && (
-                  <div className="more-menu" role="menu">
-                    {moreLinkGroups.map((group, groupIndex) => (
-                      <div key={group.label}>
-                        {groupIndex > 0 && <div className="dropdown-divider" />}
-                        <div className="dropdown-section-label">{group.label}</div>
-                        {group.links.map((link) => (
-                          <button
-                            key={link.path}
-                            className="dropdown-item"
-                            role="menuitem"
-                            onClick={() => handleNavigation(link.path)}
-                          >
-                            <link.icon width={16} height={16} />
-                            {link.label}
-                          </button>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <button
+            className="navbar-toggle"
+            onClick={onToggleSidebar}
+            aria-label="Toggle navigation menu"
+          >
+            <span className="toggle-icon"></span>
+            <span className="toggle-icon"></span>
+            <span className="toggle-icon"></span>
+          </button>
         )}
-
-        {/* Navigation Items - Mobile: flat list inside the hamburger overlay */}
-        <div className={`navbar-menu ${isMobileMenuOpen ? 'active' : ''}`}>
-          {isAuthenticated && (
-            <>
-              <button
-                className="navbar-link"
-                onClick={() => handleNavigation('/')}
-              >
-                Dashboard
-              </button>
-              {moreLinks.map((link) => (
-                <button
-                  key={link.path}
-                  className="navbar-link navbar-link-icon"
-                  onClick={() => handleNavigation(link.path)}
-                >
-                  <link.icon width={16} height={16} />
-                  {link.label}
-                </button>
-              ))}
-            </>
-          )}
-        </div>
 
         {/* Right Side - Auth Section */}
         <div className="navbar-auth">

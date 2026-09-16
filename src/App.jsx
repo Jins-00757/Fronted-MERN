@@ -10,6 +10,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/layout/Sidebar';
 import { Footer } from './components/layout/Footer';
 import { PrivacyPolicy } from './pages/legal/PrivacyPolicy';
 import { TermsOfService } from './pages/legal/TermsOfService';
@@ -52,6 +53,9 @@ function App() {
   const { isAuthenticated, isInitializing, user } = useAuth();
   const [showSalesforceModal, setShowSalesforceModal] = useState(false);
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  // Mobile-only off-canvas state for Sidebar - the desktop persistent rail
+  // has its own separate collapse/expand state, owned inside Sidebar itself.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Global Ctrl+K / Cmd+K to open the command palette - only registered
   // while authenticated, so it does nothing on the login/signup pages.
@@ -117,43 +121,51 @@ function App() {
 
   return (
     <div className="app-layout">
-      {/* Only show Navbar when authenticated */}
+      {/* Persistent left nav, only for the authenticated app shell - same
+          condition as Navbar below, so the two always appear together. */}
       {isAuthenticated && (
-        <Navbar
-          onSalesforceClick={() => setShowSalesforceModal(true)}
-          onOpenCommandPalette={() => setIsPaletteOpen(true)}
-        />
+        <Sidebar isMobileOpen={isSidebarOpen} onCloseMobile={() => setIsSidebarOpen(false)} />
       )}
 
-      {isAuthenticated && (
-        <>
-          <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
-          <GlobalActivityToaster />
-        </>
-      )}
+      <div className="app-body">
+        {/* Only show Navbar when authenticated */}
+        {isAuthenticated && (
+          <Navbar
+            onSalesforceClick={() => setShowSalesforceModal(true)}
+            onOpenCommandPalette={() => setIsPaletteOpen(true)}
+            onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          />
+        )}
 
-      {salesforceNotice && (
-        <div
-          role="status"
-          style={{
-            margin: '1rem auto 0',
-            maxWidth: '640px',
-            padding: '0.85rem 1.25rem',
-            borderRadius: '8px',
-            fontSize: '0.9rem',
-            fontWeight: 600,
-            textAlign: 'center',
-            background: salesforceNotice.type === 'success' ? '#f0fdf4' : '#fef2f2',
-            color: salesforceNotice.type === 'success' ? '#166534' : '#991b1b',
-            border: `1px solid ${salesforceNotice.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
-          }}
-        >
-          {salesforceNotice.message}
-        </div>
-      )}
+        {isAuthenticated && (
+          <>
+            <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
+            <GlobalActivityToaster />
+          </>
+        )}
 
-      <main className="app-content">
-        <Routes>
+        {salesforceNotice && (
+          <div
+            role="status"
+            style={{
+              margin: '1rem auto 0',
+              maxWidth: '640px',
+              padding: '0.85rem 1.25rem',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              textAlign: 'center',
+              background: salesforceNotice.type === 'success' ? '#f0fdf4' : '#fef2f2',
+              color: salesforceNotice.type === 'success' ? '#166534' : '#991b1b',
+              border: `1px solid ${salesforceNotice.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+            }}
+          >
+            {salesforceNotice.message}
+          </div>
+        )}
+
+        <main className="app-content">
+          <Routes>
           {/* Public Routes */}
           <Route
             path="/login"
@@ -307,8 +319,14 @@ function App() {
             path="*"
             element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />}
           />
-        </Routes>
-      </main>
+          </Routes>
+        </main>
+
+        {/* Marketing/legal chrome - shown on the logged-out screens (login,
+            signup, legal pages) same as before, but hidden once authenticated
+            so it doesn't compete with the app's own in-product navigation. */}
+        {!isAuthenticated && <Footer />}
+      </div>
 
       {/* Salesforce Connect Modal - Day 3 Feature */}
       {isAuthenticated && showSalesforceModal && (
@@ -317,11 +335,6 @@ function App() {
           isConnected={user?.isSalesforceConnected}
         />
       )}
-
-      {/* Marketing/legal chrome - shown on the logged-out screens (login,
-          signup, legal pages) same as before, but hidden once authenticated
-          so it doesn't compete with the app's own in-product navigation. */}
-      {!isAuthenticated && <Footer />}
     </div>
   );
 }

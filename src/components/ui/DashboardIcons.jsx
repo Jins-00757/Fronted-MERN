@@ -247,6 +247,20 @@ export const FileTextIcon = (props) => (
   </svg>
 );
 
+export const HomeIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M4 11.5 12 4l8 7.5" />
+    <path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" />
+    <path d="M10 20v-6h4v6" />
+  </svg>
+);
+
+export const ChevronLeftIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M15 5l-7 7 7 7" />
+  </svg>
+);
+
 export const EmptyBoxIllustration = (props) => (
   <svg
     width={120}
