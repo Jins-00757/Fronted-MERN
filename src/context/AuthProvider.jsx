@@ -195,6 +195,27 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // ========================================================================
+  // DELETE ACCOUNT - Deactivate the signed-in user's own account (soft
+  // delete via the backend's isInactive flag - see auth.controller.js).
+  // The backend already clears the session cookie on success, so this just
+  // mirrors logout()'s local state clearing rather than calling /logout too.
+  // ========================================================================
+
+  const deleteAccount = useCallback(async (password) => {
+    try {
+      await api.post('/auth/delete-account', { password });
+      setUser(null);
+      setIsAuthenticated(false);
+      setError(null);
+      return { success: true };
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Failed to delete account';
+      return { success: false, error: errorMessage };
+    }
+  }, []);
+
+  // ========================================================================
   // SALESFORCE - Connect to Salesforce account
   // ========================================================================
   //
@@ -374,6 +395,7 @@ export const AuthProvider = ({ children }) => {
     signup,
     login,
     logout,
+    deleteAccount,
 
     // 2FA
     verifyTwoFactor,

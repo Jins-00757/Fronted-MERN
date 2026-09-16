@@ -13,6 +13,7 @@ import {
 import { useAuth } from '../context/useAuth';
 import { useToast } from '../context/useToast';
 import { roleLabel as getRoleLabel } from '../utils/permissions';
+import { DangerZone } from './DangerZone';
 import './ProfileCard.css';
 
 const formatDate = (value) => {
@@ -153,6 +154,8 @@ export const ProfileCard = ({ user, onConnectSalesforce }) => {
           </button>
         )}
       </div>
+
+      <DangerZone />
     </motion.div>
   );
 };
