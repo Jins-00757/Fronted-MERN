@@ -327,9 +327,29 @@
 }
 
 .notification-bell-toggle {
+  position: relative;
   font-size: 1.1rem;
   line-height: 1;
   padding: 0.5rem;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.15rem;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ef4444;
+  color: #ffffff;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--navbar-bg);
 }
 
 .theme-toggle-btn,

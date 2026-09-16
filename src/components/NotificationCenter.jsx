@@ -1,10 +1,12 @@
 
-import { useNotifications } from '../hooks/useNotifications';
 import './NotificationCenter.css';
 
-export const NotificationCenter = () => {
-  const { notifications, isConnected, clearNotifications } = useNotifications();
-
+/**
+ * Pure display component - the WebSocket connection (useNotifications())
+ * lives in Navbar now, not here, so it can stay open while this panel is
+ * unmounted (dropdown closed) and feed the unread badge on the bell.
+ */
+export const NotificationCenter = ({ notifications, isConnected, clearNotifications }) => {
   return (
     <div className="notification-center">
       <div className="notification-header">

@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from '../context/useAuth';
 import { useTheme } from '../context/useTheme';
 import { useToast } from '../context/useToast';
 import { useNavigate } from 'react-router-dom';
 import { NotificationCenter } from './NotificationCenter';
+import { useNotifications } from '../hooks/useNotifications';
 import { Logo } from './ui/Logo';
 import { SunIcon, MoonIcon } from './ui/ThemeIcons';
 import {
@@ -99,10 +100,13 @@ const VerifyEmailReminder = () => {
   );
 };
 
-// NotificationCenter owns its own useNotifications() WebSocket connection,
-// so it's only mounted while the dropdown is open - mounting it eagerly (or
-// calling useNotifications() again here for a badge count) would open a
-// second, redundant socket per page load.
+// The WebSocket connection lives here (not inside NotificationCenter) and
+// stays open for as long as the Navbar is mounted - i.e. for as long as the
+// user is authenticated - rather than only while the dropdown is open, so
+// the unread badge can count notifications that arrive while it's closed.
+// NotificationCenter is now a plain display component fed via props, so
+// there's still only one socket for the bell (GlobalActivityToaster keeps
+// its own separate one for cross-tab toasts - see that file's docstring).
 
 /**
  * Navbar Component - Professional Navigation with Authentication State
@@ -122,6 +126,22 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+
+  const { notifications, isConnected, clearNotifications } = useNotifications();
+  const [unreadCount, setUnreadCount] = useState(0);
+  // Timestamp of the last time the dropdown was opened - notifications
+  // newer than this count as unread. null (never opened yet) means
+  // everything received so far is unread.
+  const lastReadAtRef = useRef(null);
+
+  useEffect(() => {
+    if (isNotificationsOpen) return;
+    const lastReadAt = lastReadAtRef.current;
+    const unseen = lastReadAt
+      ? notifications.filter((n) => new Date(n.timestamp) > new Date(lastReadAt)).length
+      : notifications.length;
+    setUnreadCount(unseen);
+  }, [notifications, isNotificationsOpen]);
 
   // Grouped and ordered to mirror the actual sales process and the
   // underlying Salesforce data relationships, rather than alphabetically or
@@ -214,7 +234,17 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
   }, []);
 
   const toggleNotifications = useCallback(() => {
-    setIsNotificationsOpen(prev => !prev);
+    setIsNotificationsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        // Opening the dropdown is "reading" everything currently in the
+        // list - the badge should reset now, and only notifications that
+        // arrive after this moment should count toward it next time.
+        lastReadAtRef.current = new Date().toISOString();
+        setUnreadCount(0);
+      }
+      return next;
+    });
   }, []);
 
   const toggleMobileMenu = useCallback(() => {
@@ -346,15 +376,24 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette }) => {
                 <button
                   className="btn-link notification-bell-toggle"
                   onClick={toggleNotifications}
-                  aria-label="Notifications"
+                  aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
                   aria-expanded={isNotificationsOpen}
                   aria-haspopup="true"
                 >
                   🔔
+                  {unreadCount > 0 && (
+                    <span className="notification-badge" aria-hidden="true">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </button>
                 {isNotificationsOpen && (
                   <div className="notification-bell-dropdown">
-                    <NotificationCenter />
+                    <NotificationCenter
+                      notifications={notifications}
+                      isConnected={isConnected}
+                      clearNotifications={clearNotifications}
+                    />
                   </div>
                 )}
               </div>
