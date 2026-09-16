@@ -124,7 +124,7 @@
 .navbar-auth {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -226,6 +226,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  gap: 0.35rem;
 }
 
 /* Notification Bell */
@@ -262,7 +263,8 @@
 }
 
 .theme-toggle-btn,
-.cmdk-trigger-btn {
+.cmdk-trigger-btn,
+.activity-toggle-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -325,6 +327,23 @@
 
 .dropdown-arrow.open {
   transform: rotate(180deg);
+}
+
+/* Between the 1024px sidebar-drawer breakpoint and the 768px one below,
+   the topbar has to fit brand+hamburger on the left *and* the full
+   6-item auth row (search/theme/activity/bell/Salesforce badge/profile
+   button) on the right - the narrowest range before .user-email also
+   drops out. Shedding the badge's text label here first (rather than
+   both changes landing at once at 768px) is what actually fixed the
+   badge visually crowding into the profile button in this range. */
+@media (max-width: 900px) {
+  .salesforce-badge-label {
+    display: none;
+  }
+
+  .salesforce-badge {
+    padding: 0.35rem 0.55rem;
+  }
 }
 
 @media (max-width: 768px) {

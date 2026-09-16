@@ -235,7 +235,7 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
                 {theme === 'light' ? <MoonIcon /> : <SunIcon />}
               </button>
               <button
-                className="btn-link"
+                className="btn-link activity-toggle-btn"
                 onClick={() => setIsActivityOpen(true)}
                 aria-label="Open activity feed"
                 title="Activity feed"
@@ -269,7 +269,7 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
               </div>
               {user?.isSalesforceConnected ? (
                 <span className="salesforce-badge" title={user?.salesforceOrgName || 'Salesforce'}>
-                  <CheckCircleIcon width={14} height={14} /> Salesforce
+                  <CheckCircleIcon width={14} height={14} /> <span className="salesforce-badge-label">Salesforce</span>
                 </span>
               ) : (
                 <button className="btn-link btn-link-icon" onClick={onSalesforceClick}>
