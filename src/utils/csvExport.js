@@ -4,8 +4,18 @@
  * AdvancedSearch.jsx uses for its server-streamed export.
  */
 
+// Guards against CSV/formula injection: a spreadsheet app treats a cell
+// starting with =, +, -, @, tab, or CR as a formula, which lets
+// attacker-controlled data (e.g. a Salesforce field) run code when the
+// exported file is opened in Excel/Sheets. Prefixing with a single quote
+// forces the cell to be read as literal text.
+const FORMULA_TRIGGER_CHARS = new Set(['=', '+', '-', '@', '\t', '\r']);
+
 const escapeCell = (cell) => {
-  const value = cell === null || cell === undefined ? '' : String(cell);
+  let value = cell === null || cell === undefined ? '' : String(cell);
+  if (value.length > 0 && FORMULA_TRIGGER_CHARS.has(value[0])) {
+    value = `'${value}`;
+  }
   if (/[",\n]/.test(value)) {
     return `"${value.replace(/"/g, '""')}"`;
   }
