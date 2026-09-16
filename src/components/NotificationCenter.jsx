@@ -1,4 +1,5 @@
 
+import { PlusIcon, EditIcon, CheckCircleIcon, AlertTriangleIcon, InfoIcon } from './ui/DashboardIcons';
 import './NotificationCenter.css';
 
 /**
@@ -40,15 +41,15 @@ const NotificationItem = ({ notification }) => {
   const getIcon = (type) => {
     switch (type) {
       case 'opportunity.created':
-        return '✨';
+        return <PlusIcon width={16} height={16} />;
       case 'opportunity.updated':
-        return '📝';
+        return <EditIcon width={16} height={16} />;
       case 'opportunity.closed':
-        return '🎉';
+        return <CheckCircleIcon width={16} height={16} />;
       case 'notification.email_failed':
-        return '⚠️';
+        return <AlertTriangleIcon width={16} height={16} />;
       default:
-        return 'ℹ️';
+        return <InfoIcon width={16} height={16} />;
     }
   };
 

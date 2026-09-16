@@ -91,7 +91,7 @@
 }
 
 .social-link:hover {
-  background-color: var(--primary-color, #007bff);
+  background-color: var(--primary-color, #157a6e);
   color: #ffffff;
   transform: translateY(-2px);
   text-decoration: none;

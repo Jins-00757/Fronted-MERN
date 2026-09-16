@@ -121,7 +121,7 @@ export const SalesforceConnect = ({ onClose, isConnected }) => {
             <button
               onClick={handleConnect}
               disabled={isConnecting}
-              style={buttonStyle('#667eea', 'white', 'none')}
+              style={buttonStyle('#157a6e', 'white', 'none')}
             >
               {isConnecting ? 'Redirecting to Salesforce...' : 'Connect Salesforce Account'}
             </button>

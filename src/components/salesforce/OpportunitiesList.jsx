@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/useAuth';
 import { useToast } from '../../context/useToast';
 import api from '../../services/api';
-import { ActivityFeed } from './ActivityFeed';
 import { OpportunitiesBoard } from './OpportunitiesBoard';
 import { Modal } from '../ui/Modal';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -92,7 +91,6 @@ export const OpportunitiesList = () => {
   const [filters, setFilters] = useState({ stage: '', amountMin: '', amountMax: '' });
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'board'
 
-  const [isActivityOpen, setIsActivityOpen] = useState(false);
   const [formState, setFormState] = useState(null); // null | { mode: 'create' } | { mode: 'edit', opportunity }
   const [confirmState, setConfirmState] = useState(null); // null | { type, opportunity }
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -257,9 +255,6 @@ export const OpportunitiesList = () => {
               ▤ Board
             </button>
           </div>
-          <button type="button" className="btn-outline" onClick={() => setIsActivityOpen(true)}>
-            🕘 Activity
-          </button>
           <button type="button" className="btn-outline" onClick={refetch} disabled={isLoading}>
             {isLoading ? 'Refreshing…' : '↻ Refresh'}
           </button>
@@ -395,8 +390,6 @@ export const OpportunitiesList = () => {
           onMutated={refetch}
         />
       )}
-
-      <ActivityFeed isOpen={isActivityOpen} onClose={() => setIsActivityOpen(false)} />
 
       <OpportunityFormModal
         state={formState}

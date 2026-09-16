@@ -4,10 +4,21 @@ import { useTheme } from '../context/useTheme';
 import { useToast } from '../context/useToast';
 import { useNavigate } from 'react-router-dom';
 import { NotificationCenter } from './NotificationCenter';
+import { ActivityFeed } from './ActivityFeed';
 import { useNotifications } from '../hooks/useNotifications';
 import { Logo } from './ui/Logo';
 import { SunIcon, MoonIcon } from './ui/ThemeIcons';
-import { SearchIcon } from './ui/DashboardIcons';
+import { MailIcon, UserIcon } from './ui/AuthIcons';
+import {
+  SearchIcon,
+  ClockIcon,
+  BellIcon,
+  CheckCircleIcon,
+  LinkIcon,
+  UnlinkIcon,
+  LogoutIcon,
+  AlertTriangleIcon,
+} from './ui/DashboardIcons';
 import './Navbar.css';
 
 // Settings toggle for the "send when deal stage changes" / daily summary
@@ -35,7 +46,7 @@ const EmailNotificationsToggle = () => {
 
   return (
     <div className="dropdown-item dropdown-toggle-item">
-      <span>📧 Email notifications</span>
+      <span className="dropdown-item-label"><MailIcon width={16} height={16} /> Email notifications</span>
       <button
         type="button"
         role="switch"
@@ -74,7 +85,7 @@ const VerifyEmailReminder = () => {
 
   return (
     <div className="dropdown-item dropdown-verify-item">
-      <span>✉️ Email not verified</span>
+      <span className="dropdown-item-label"><AlertTriangleIcon width={16} height={16} /> Email not verified</span>
       <button
         type="button"
         className="dropdown-verify-btn"
@@ -117,6 +128,7 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
 
   const { notifications, isConnected, clearNotifications } = useNotifications();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -222,6 +234,14 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
               >
                 {theme === 'light' ? <MoonIcon /> : <SunIcon />}
               </button>
+              <button
+                className="btn-link"
+                onClick={() => setIsActivityOpen(true)}
+                aria-label="Open activity feed"
+                title="Activity feed"
+              >
+                <ClockIcon width={17} height={17} />
+              </button>
               <div className="notification-bell-container">
                 <button
                   className="btn-link notification-bell-toggle"
@@ -230,7 +250,7 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
                   aria-expanded={isNotificationsOpen}
                   aria-haspopup="true"
                 >
-                  🔔
+                  <BellIcon width={17} height={17} />
                   {unreadCount > 0 && (
                     <span className="notification-badge" aria-hidden="true">
                       {unreadCount > 9 ? '9+' : unreadCount}
@@ -249,11 +269,11 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
               </div>
               {user?.isSalesforceConnected ? (
                 <span className="salesforce-badge" title={user?.salesforceOrgName || 'Salesforce'}>
-                  ✓ Salesforce
+                  <CheckCircleIcon width={14} height={14} /> Salesforce
                 </span>
               ) : (
-                <button className="btn-link" onClick={onSalesforceClick}>
-                  🔗 Connect Salesforce
+                <button className="btn-link btn-link-icon" onClick={onSalesforceClick}>
+                  <LinkIcon width={15} height={15} /> Connect Salesforce
                 </button>
               )}
               <button
@@ -287,7 +307,7 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
                     onClick={() => handleNavigation('/profile')}
                     role="menuitem"
                   >
-                    👤 My Profile
+                    <UserIcon width={16} height={16} /> My Profile
                   </button>
 
                   <div className="dropdown-divider"></div>
@@ -309,7 +329,7 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
                       onClick={handleDisconnectSalesforce}
                       role="menuitem"
                     >
-                      🔌 Disconnect Salesforce
+                      <UnlinkIcon width={16} height={16} /> Disconnect Salesforce
                     </button>
                   ) : (
                     <button
@@ -320,7 +340,7 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
                       }}
                       role="menuitem"
                     >
-                      🔗 Connect Salesforce
+                      <LinkIcon width={16} height={16} /> Connect Salesforce
                     </button>
                   )}
 
@@ -331,7 +351,7 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
                     onClick={handleLogout}
                     role="menuitem"
                   >
-                    🚪 Logout
+                    <LogoutIcon width={16} height={16} /> Logout
                   </button>
                 </div>
               )}
@@ -354,6 +374,10 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
           )}
         </div>
       </div>
+
+      {isAuthenticated && (
+        <ActivityFeed isOpen={isActivityOpen} onClose={() => setIsActivityOpen(false)} />
+      )}
     </nav>
   );
 };

@@ -36,7 +36,7 @@
   height: 480px;
   top: -160px;
   left: -140px;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.22), transparent 70%);
+  background: radial-gradient(circle, rgba(21, 122, 110, 0.22), transparent 70%);
   animation: auth-float-a 14s ease-in-out infinite;
 }
 
@@ -45,7 +45,7 @@
   height: 420px;
   bottom: -160px;
   right: -120px;
-  background: radial-gradient(circle, rgba(118, 75, 162, 0.2), transparent 70%);
+  background: radial-gradient(circle, rgba(73, 159, 104, 0.2), transparent 70%);
   animation: auth-float-b 16s ease-in-out infinite;
 }
 
@@ -170,7 +170,7 @@
 .auth-inline-link {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #667eea;
+  color: #157a6e;
   text-decoration: none;
 }
 
@@ -211,14 +211,14 @@
 
 .auth-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #157a6e;
   background-color: var(--bg-card);
-  box-shadow: 0 0 0 3.5px rgba(102, 126, 234, 0.14);
+  box-shadow: 0 0 0 3.5px rgba(21, 122, 110, 0.14);
 }
 
 .auth-input:focus ~ .auth-input-icon,
 .auth-input-wrapper:focus-within .auth-input-icon {
-  color: #667eea;
+  color: #157a6e;
 }
 
 .auth-input.has-toggle {
@@ -248,7 +248,7 @@
 }
 
 .auth-password-toggle:focus-visible {
-  outline: 2px solid #667eea;
+  outline: 2px solid #157a6e;
   outline-offset: 1px;
 }
 
@@ -266,13 +266,13 @@
   padding: 0.8rem 1rem;
   border: none;
   border-radius: 9px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #157a6e 0%, #499f68 100%);
   color: #ffffff;
   font-size: 0.98rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  box-shadow: 0 8px 18px -6px rgba(102, 126, 234, 0.55);
+  box-shadow: 0 8px 18px -6px rgba(21, 122, 110, 0.55);
   transition: box-shadow 0.2s ease, filter 0.2s ease;
   display: flex;
   align-items: center;
@@ -282,7 +282,7 @@
 
 .auth-submit:hover:not(:disabled) {
   filter: brightness(1.06);
-  box-shadow: 0 10px 22px -6px rgba(102, 126, 234, 0.65);
+  box-shadow: 0 10px 22px -6px rgba(21, 122, 110, 0.65);
 }
 
 .auth-submit:active:not(:disabled) {
@@ -322,7 +322,7 @@
   height: 32px;
   margin: 0 auto 1rem;
   border: 3px solid var(--border-color, #e5e7eb);
-  border-top-color: var(--primary-color, #007bff);
+  border-top-color: var(--primary-color, #157a6e);
   border-radius: 50%;
   animation: auth-spin 0.8s linear infinite;
 }
@@ -356,7 +356,7 @@
 }
 
 .auth-switch-link {
-  color: #667eea;
+  color: #157a6e;
   font-weight: 600;
   text-decoration: none;
 }
@@ -391,11 +391,11 @@
 }
 
 .signup-step-dot.done {
-  background-color: #764ba2;
+  background-color: #499f68;
 }
 
 .signup-step-dot.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #157a6e 0%, #499f68 100%);
 }
 
 .role-picker {
@@ -423,8 +423,8 @@
 }
 
 .role-card.selected {
-  border-color: #667eea;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  border-color: #157a6e;
+  background: linear-gradient(135deg, rgba(21, 122, 110, 0.1), rgba(73, 159, 104, 0.1));
 }
 
 .role-card-title {

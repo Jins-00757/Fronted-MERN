@@ -9,9 +9,21 @@
 }
 
 :root {
-  /* brand - unchanged across themes */
-  --primary-color: #007bff;
-  --primary-hover: #0056b3;
+  /* brand palette - the single source of truth for these tokens across the
+     whole app; component stylesheets (Navbar.css, Sidebar.css, etc.) read
+     them rather than redeclaring their own copies, so there is exactly one
+     place to change the brand colors. */
+  --primary-color: #157a6e; /* Blue Spruce */
+  --primary-hover: #0f5c53;
+  --secondary-color: #499f68; /* Shamrock */
+  --secondary-hover: #3c8455;
+  --accent-color: #b4654a; /* Cinnamon Wood */
+  --accent-hover: #9c5540;
+  --muted-accent: #77b28c; /* Muted Teal */
+  --neutral-tint: #c2c5bb; /* Ash Grey */
+  --success-color: #499f68;
+  --danger-color: #c0392b;
+  --danger-hover: #a53125;
 
   /* surfaces */
   --bg-page: #f8f9fa;
@@ -43,8 +55,18 @@
 
   --border-color: #374151;
 
-  --primary-color: #3b82f6;
-  --primary-hover: #60a5fa;
+  /* Same palette, brightened for contrast against a dark surface. */
+  --primary-color: #2bb39d;
+  --primary-hover: #4cc9b4;
+  --secondary-color: #5ec488;
+  --secondary-hover: #78d19d;
+  --accent-color: #d17e63;
+  --accent-hover: #e0947b;
+  --muted-accent: #8fc4a3;
+  --neutral-tint: #3a3f3b;
+  --success-color: #5ec488;
+  --danger-color: #e0584a;
+  --danger-hover: #ef7364;
 }
 
 /* ========================================
@@ -71,6 +93,19 @@ body {
     'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Browsers don't inherit the body font into form controls by default (they
+   use a platform UI font instead) - without this, buttons/inputs/selects
+   render in a different typeface than the surrounding text, which is why
+   some buttons "still have a different font" even though body already
+   declares Google Sans Flex. */
+button,
+input,
+select,
+textarea,
+optgroup {
+  font-family: inherit;
 }
 
 #root {
@@ -149,9 +184,9 @@ footer {
   display: inline-block;
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(0, 123, 255, 0.3);
+  border: 4px solid rgba(21, 122, 110, 0.3);
   border-radius: 50%;
-  border-top-color: #007bff;
+  border-top-color: #157a6e;
   animation: spin 1s linear infinite;
 }
 
@@ -239,6 +274,19 @@ a:hover {
 .mb-5 { margin-bottom: 2rem; }
 
 .mb-auto { margin-bottom: auto; }
+
+/* Generic icon+text row - for a button/span pairing an SVG icon (see
+   components/ui/DashboardIcons.jsx, AuthIcons.jsx) with a text label,
+   used in place of an emoji prefix. */
+.btn-icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-icon-label svg {
+  flex-shrink: 0;
+}
 
 /* ========================================
    RESPONSIVE DESIGN

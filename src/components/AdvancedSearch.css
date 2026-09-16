@@ -29,8 +29,8 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #157a6e;
+  box-shadow: 0 0 0 3px rgba(21, 122, 110, 0.1);
 }
 
 .suggestions-dropdown {
@@ -105,8 +105,8 @@
 .filter-group input:focus,
 .filter-group select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #157a6e;
+  box-shadow: 0 0 0 3px rgba(21, 122, 110, 0.1);
 }
 
 .export-options {

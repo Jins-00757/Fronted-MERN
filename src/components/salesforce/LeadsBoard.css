@@ -25,7 +25,7 @@
   padding: 0.6rem 1.1rem;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #157a6e, #499f68);
   color: #fff;
   font-weight: 600;
   font-size: 0.9rem;
@@ -35,7 +35,7 @@
 
 .leads-header .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6px 16px rgba(21, 122, 110, 0.3);
 }
 
 /* ---- Tier summary chips ------------------------------------------------ */
@@ -171,12 +171,12 @@
 .lead-card:hover {
   border-color: #a5b4fc;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12);
+  box-shadow: 0 8px 20px rgba(21, 122, 110, 0.12);
 }
 
 .lead-card.selected {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+  border-color: #157a6e;
+  box-shadow: 0 0 0 2px rgba(21, 122, 110, 0.25);
 }
 
 .lead-card-checkbox {
@@ -192,7 +192,7 @@
   width: 17px;
   height: 17px;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: #157a6e;
 }
 
 .lead-card-body {
@@ -434,7 +434,7 @@
 .score-breakdown-bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #157a6e, #499f68);
   transition: width 0.4s ease;
 }
 

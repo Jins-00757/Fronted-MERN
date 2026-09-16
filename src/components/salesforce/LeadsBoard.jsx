@@ -641,7 +641,7 @@ const LeadDetailModal = ({ lead, statuses, onClose, onConvert, onSyncScore, isSu
 
         {convertResult && (
           <div className="lead-convert-result">
-            <p>✓ Converted successfully.</p>
+            <p className="btn-icon-label"><CheckCircleIcon width={16} height={16} /> Converted successfully.</p>
             <ul>
               <li>Account created</li>
               <li>Contact created</li>

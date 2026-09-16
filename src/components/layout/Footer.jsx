@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '../ui/Logo';
+import { GithubIcon } from '../ui/DashboardIcons';
 import './Footer.css';
 
 /**
@@ -67,7 +68,7 @@ export const Footer = () => {
                 aria-label="GitHub"
                 title="Visit us on GitHub"
               >
-                ⚙️
+                <GithubIcon width={16} height={16} />
               </a>
             </div>
           </div>

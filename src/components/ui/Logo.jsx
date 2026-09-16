@@ -35,8 +35,8 @@ export const Logo = ({
       >
         <defs>
           <linearGradient id="spiLogoGradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#667eea" />
-            <stop offset="1" stopColor="#764ba2" />
+            <stop stopColor="#157a6e" />
+            <stop offset="1" stopColor="#499f68" />
           </linearGradient>
         </defs>
         <rect width="40" height="40" rx="11" fill="url(#spiLogoGradient)" />

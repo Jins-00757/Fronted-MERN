@@ -1,15 +1,16 @@
 /* Navbar Professional Styling */
 
+/* --primary-color/--success-color/--danger-color etc. are NOT redeclared
+   here - they live in styles/global.css as the single source of truth.
+   Redefining them a second time at :root here previously risked silently
+   winning the cascade (later-loaded stylesheet, equal specificity) and
+   drifting out of sync with the rest of the app. */
 :root {
   --navbar-bg: #ffffff;
   --navbar-border: #e5e7eb;
   --navbar-text: #1f2937;
   --navbar-text-muted: #6b7280;
   --navbar-hover: #f3f4f6;
-  --primary-color: #007bff;
-  --primary-hover: #0056b3;
-  --success-color: #28a745;
-  --danger-color: #dc3545;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -19,8 +20,6 @@
   --navbar-text: #f3f4f6;
   --navbar-text-muted: #9ca3af;
   --navbar-hover: #111827;
-  --primary-color: #3b82f6;
-  --primary-hover: #1d4ed8;
 }
 
 * {
@@ -50,6 +49,16 @@
 /* Brand/Logo */
 .navbar-brand {
   flex-shrink: 0;
+}
+
+/* Sidebar (Sidebar.jsx) already shows the brand once it's a persistent
+   rail at this width - showing it here too would be two logos on screen
+   at once. Below 1024px the sidebar is an off-canvas drawer (hidden by
+   default), so this is the only visible brand mark until it's opened. */
+@media (min-width: 1024px) {
+  .navbar-brand {
+    display: none;
+  }
 }
 
 .navbar-logo {
@@ -148,6 +157,9 @@
 }
 
 .btn-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: var(--navbar-text);
@@ -156,6 +168,25 @@
   font-size: 0.95rem;
   transition: background-color 0.2s;
   border-radius: 4px;
+}
+
+.btn-link svg {
+  flex-shrink: 0;
+}
+
+.btn-link-icon {
+  gap: 0.4rem;
+}
+
+.btn-link-icon svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.dropdown-item-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .btn-link:hover {
@@ -272,7 +303,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color), #667eea);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: white;
   font-size: 0.9rem;
   font-weight: 600;

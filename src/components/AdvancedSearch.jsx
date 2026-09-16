@@ -1,6 +1,7 @@
 
 import  { useState, useEffect } from 'react';
 import api from '../services/api';
+import { DownloadIcon } from './ui/DashboardIcons';
 import './AdvancedSearch.css';
 
 export const AdvancedSearch = ({ onResults }) => {
@@ -217,16 +218,16 @@ export const AdvancedSearch = ({ onResults }) => {
       {results.length > 0 && (
         <div className="export-options">
           <button
-            className="btn-secondary"
+            className="btn-secondary btn-icon-label"
             onClick={() => handleExport('csv')}
           >
-            📥 Export as CSV
+            <DownloadIcon width={15} height={15} /> Export as CSV
           </button>
           <button
-            className="btn-secondary"
+            className="btn-secondary btn-icon-label"
             onClick={() => handleExport('pdf')}
           >
-            📥 Export as PDF
+            <DownloadIcon width={15} height={15} /> Export as PDF
           </button>
         </div>
       )}
