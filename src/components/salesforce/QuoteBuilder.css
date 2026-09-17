@@ -295,6 +295,20 @@
   background: var(--bg-subtle);
 }
 
+.quote-email-panel-status {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.quote-email-panel-error {
+  color: var(--danger-color);
+}
+
+.quote-email-panel-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
 /* ---- Actions bar ------------------------------------------------------------ */
 
 .quote-builder-actions {

@@ -44,6 +44,7 @@ const EMPTY_HEADER = {
   name: '',
   opportunityId: null,
   opportunityName: '',
+  accountId: null,
   accountName: '',
   expirationDate: '',
   description: '',
@@ -89,8 +90,14 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
   const [loadError, setLoadError] = useState(null);
 
   const [emailPanelOpen, setEmailPanelOpen] = useState(false);
-  const [emailTo, setEmailTo] = useState('');
-  const [emailName, setEmailName] = useState('');
+  // Recipients are never free-typed - only Contacts Salesforce already
+  // associates with this quote's Account (see quotesController.
+  // getQuoteRecipients/emailQuotePdf, which enforces the same restriction
+  // server-side regardless of what this UI sends).
+  const [contacts, setContacts] = useState([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactsError, setContactsError] = useState(null);
+  const [selectedContactId, setSelectedContactId] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -118,6 +125,7 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
           name: quote.Name || '',
           opportunityId: quote.OpportunityId,
           opportunityName: quote.Opportunity?.Name || '',
+          accountId: quote.Opportunity?.AccountId || null,
           accountName: quote.Opportunity?.Account?.Name || '',
           expirationDate: quote.ExpirationDate || '',
           description: quote.Description || '',
@@ -232,7 +240,11 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
       setQuoteNumber(quote.QuoteNumber || null);
       setServerTotals({ subtotal: quote.Subtotal, grandTotal: quote.GrandTotal });
       setLineItems(freshLines.map(fromSalesforceLineItem));
-      setHeader((prev) => ({ ...prev, status: quote.Status || prev.status }));
+      setHeader((prev) => ({
+        ...prev,
+        status: quote.Status || prev.status,
+        accountId: quote.Opportunity?.AccountId || prev.accountId,
+      }));
 
       onSaved?.();
     } catch (err) {
@@ -264,23 +276,52 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
     }
   };
 
+  // Fetch the quote's related Account's contacts the moment the Email panel
+  // opens (not eagerly on load - most quote edits never open it) - this is
+  // the *only* source of recipients the panel ever offers, since
+  // quotesController.emailQuotePdf resolves and validates the address
+  // server-side from this exact same relationship, never from client input.
+  useEffect(() => {
+    if (!emailPanelOpen || !currentQuoteId) return undefined;
+
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-panel-open loading flag, not derivable from props/state
+    setContactsLoading(true);
+    setContactsError(null);
+
+    api.get(`/salesforce/quotes/${currentQuoteId}/recipients`)
+      .then((res) => {
+        if (cancelled) return;
+        const recipients = res.data.data || [];
+        setContacts(recipients);
+        setSelectedContactId(recipients.length > 0 ? recipients[0].contactId : '');
+      })
+      .catch((err) => {
+        if (!cancelled) setContactsError(err.message || 'Failed to load contacts for this account');
+      })
+      .finally(() => {
+        if (!cancelled) setContactsLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [emailPanelOpen, currentQuoteId]);
+
   const handleSendEmail = async (e) => {
     e.preventDefault();
-    if (!currentQuoteId) return;
+    if (!currentQuoteId || !selectedContactId) return;
     setIsSendingEmail(true);
     try {
+      const recipient = contacts.find((c) => c.contactId === selectedContactId);
       // Same reasoning as handleDownloadPdf's timeout - this does the same
       // PDF generation plus an outbound SMTP send on top, both slower than
       // the 30s default is built for.
       await api.post(
         `/salesforce/quotes/${currentQuoteId}/email`,
-        { to: emailTo, recipientName: emailName },
+        { contactId: selectedContactId },
         { timeout: 60000 }
       );
-      toast.success(`Quote emailed to ${emailTo}`);
+      toast.success(`Quote emailed to ${recipient?.name || 'contact'} (${recipient?.email || ''})`);
       setEmailPanelOpen(false);
-      setEmailTo('');
-      setEmailName('');
     } catch (err) {
       toast.error(
         err.code === 'ECONNABORTED'
@@ -332,7 +373,9 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
               <OpportunityPicker
                 value={header.opportunityId}
                 label={header.opportunityName}
-                onChange={(id, name) => setHeader((prev) => ({ ...prev, opportunityId: id, opportunityName: name }))}
+                onChange={(id, name, accountId) =>
+                  setHeader((prev) => ({ ...prev, opportunityId: id, opportunityName: name, accountId: accountId || null }))
+                }
               />
             )}
 
@@ -478,19 +521,39 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
 
           {emailPanelOpen && (
             <form className="quote-email-panel" onSubmit={handleSendEmail}>
-              <div className="quote-builder-header-row">
-                <div className="filter-group">
-                  <label>Recipient Email *</label>
-                  <input type="email" required value={emailTo} onChange={(e) => setEmailTo(e.target.value)} placeholder="client@company.com" />
+              {contactsLoading ? (
+                <div className="quote-email-panel-status">Loading contacts for {header.accountName || 'this account'}...</div>
+              ) : contactsError ? (
+                <div className="quote-email-panel-status quote-email-panel-error">{contactsError}</div>
+              ) : contacts.length === 0 ? (
+                <div className="quote-email-panel-status">
+                  No contacts with an email address on file for {header.accountName || 'this account'}. Add a
+                  contact with an email in Salesforce, then try again.
                 </div>
+              ) : (
                 <div className="filter-group">
-                  <label>Recipient Name</label>
-                  <input type="text" value={emailName} onChange={(e) => setEmailName(e.target.value)} />
+                  <label>Send To *</label>
+                  <select value={selectedContactId} onChange={(e) => setSelectedContactId(e.target.value)} required>
+                    {contacts.map((c) => (
+                      <option key={c.contactId} value={c.contactId}>
+                        {c.name}{c.title ? ` · ${c.title}` : ''} — {c.email}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="quote-email-panel-hint">
+                    Quotes can only be sent to a contact on {header.accountName || 'this'} account's Salesforce record.
+                  </span>
                 </div>
-              </div>
+              )}
               <div className="confirm-actions">
                 <button type="button" className="btn-modal-secondary" onClick={() => setEmailPanelOpen(false)} disabled={isSendingEmail}>Cancel</button>
-                <button type="submit" className="btn-modal-primary" disabled={isSendingEmail}>{isSendingEmail ? 'Sending...' : 'Send Quote'}</button>
+                <button
+                  type="submit"
+                  className="btn-modal-primary"
+                  disabled={isSendingEmail || contactsLoading || contacts.length === 0 || !selectedContactId}
+                >
+                  {isSendingEmail ? 'Sending...' : 'Send Quote'}
+                </button>
               </div>
             </form>
           )}
