@@ -328,3 +328,5 @@ export const AdvancedSearch = ({ onResults }) => {
     </div>
   );
 };
+
+export default AdvancedSearch;

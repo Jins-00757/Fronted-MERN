@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { useAuth } from './context/useAuth';
@@ -12,23 +12,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { Footer } from './components/layout/Footer';
-import { PrivacyPolicy } from './pages/legal/PrivacyPolicy';
-import { TermsOfService } from './pages/legal/TermsOfService';
-import { SecurityPolicy } from './pages/legal/SecurityPolicy';
-import { CookiePolicy } from './pages/legal/CookiePolicy';
 import { SalesforceConnect } from './components/salesforce/SalesforceConnect';
-import { OpportunitiesList } from './components/salesforce/OpportunitiesList';
-import { LeadsBoard } from './components/salesforce/LeadsBoard';
-import { ContractsView } from './components/salesforce/ContractsView';
-import { AccountsMap } from './components/salesforce/AccountsMap';
-import { AccountsView } from './components/salesforce/AccountsView';
-import { ContactsView } from './components/salesforce/ContactsView';
-import { QuotesView } from './components/salesforce/QuotesView';
-import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { SaaSMetricsDashboard } from './components/SaaSMetricsDashboard';
-import { AdvancedSearch } from './components/AdvancedSearch';
-import BulkOperations from './pages/BulkOperations';
-import { Profile } from './pages/Profile';
 import api from './services/api';
 import { MetricCard } from './components/ui/ReportWidgets';
 import { gridVariants } from './components/ui/reportWidgetUtils';
@@ -40,9 +24,42 @@ import { ChatbotWidget } from './components/ChatbotWidget';
 import { DealWonCelebration } from './components/DealWonCelebration';
 import { onDealClosed } from './utils/dealEvents';
 import { downloadFileFromLink } from './utils/secureDownload';
-import './components/AnalyticsDashboard.css';
-import './components/SaaSMetricsDashboard.css';
 import './styles/global.css';
+
+// Code-split every page that's only reachable once already authenticated -
+// none of this needs to be in the bundle a first-time visitor downloads just
+// to see the login screen. Each of these already has a default export (see
+// the component files themselves) - React.lazy() requires one. This is the
+// single biggest lever on initial load size: AccountsMap alone pulls in
+// leaflet/react-leaflet (a genuinely heavy mapping library used nowhere
+// else), and AnalyticsDashboard/SaaSMetricsDashboard are chart-heavy pages
+// most sessions never visit at all.
+const PrivacyPolicy = lazy(() => import('./pages/legal/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/legal/TermsOfService'));
+const SecurityPolicy = lazy(() => import('./pages/legal/SecurityPolicy'));
+const CookiePolicy = lazy(() => import('./pages/legal/CookiePolicy'));
+const OpportunitiesList = lazy(() => import('./components/salesforce/OpportunitiesList'));
+const LeadsBoard = lazy(() => import('./components/salesforce/LeadsBoard'));
+const ContractsView = lazy(() => import('./components/salesforce/ContractsView'));
+const AccountsMap = lazy(() => import('./components/salesforce/AccountsMap'));
+const AccountsView = lazy(() => import('./components/salesforce/AccountsView'));
+const ContactsView = lazy(() => import('./components/salesforce/ContactsView'));
+const QuotesView = lazy(() => import('./components/salesforce/QuotesView'));
+const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard'));
+const SaaSMetricsDashboard = lazy(() => import('./components/SaaSMetricsDashboard'));
+const AdvancedSearch = lazy(() => import('./components/AdvancedSearch'));
+const BulkOperations = lazy(() => import('./pages/BulkOperations'));
+const Profile = lazy(() => import('./pages/Profile'));
+
+// Shared fallback for every lazy route above - same spinner/markup the
+// initial session-restore loader below already uses, just sized to sit
+// inside <main> instead of replacing the whole app shell.
+const RouteLoadingFallback = () => (
+  <div className="loading-center" style={{ padding: '4rem 0' }}>
+    <div className="spinner"></div>
+    <p>Loading...</p>
+  </div>
+);
 
 /**
  * App Component - Main application routing and layout
@@ -170,6 +187,7 @@ function App() {
         )}
 
         <main className="app-content">
+          <Suspense fallback={<RouteLoadingFallback />}>
           <Routes>
           {/* Public Routes */}
           <Route
@@ -325,6 +343,7 @@ function App() {
             element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />}
           />
           </Routes>
+          </Suspense>
         </main>
 
         {/* Marketing/legal chrome - shown on the logged-out screens (login,

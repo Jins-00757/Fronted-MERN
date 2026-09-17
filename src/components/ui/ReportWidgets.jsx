@@ -9,6 +9,14 @@ import {
   TrendingDownIcon,
   EmptyBoxIllustration,
 } from './DashboardIcons';
+// .report-metrics/.metric-card and friends are defined here, not in a
+// dedicated ReportWidgets.css - this component needs them immediately
+// wherever it's used (including App.jsx's home Dashboard, which is never
+// lazy-loaded), so it owns importing them itself rather than relying on a
+// consumer to import AnalyticsDashboard.css first. AnalyticsDashboard.jsx/
+// SaaSMetricsDashboard.jsx also import the same file directly - harmless,
+// CSS imports are idempotent.
+import '../AnalyticsDashboard.css';
 
 /**
  * ReportWidgets - animated report building blocks (metric cards, skeleton
