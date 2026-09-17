@@ -173,7 +173,7 @@ export const AdvancedSearch = ({ onResults }) => {
             placeholder='Try "show me won deals over $50k in Q3, newest first"'
             className="search-input ai-search-input"
           />
-          <button type="submit" className="btn-secondary" disabled={isParsingNl || !nlQuery.trim()}>
+          <button type="submit" className="ai-ask-btn" disabled={isParsingNl || !nlQuery.trim()}>
             {isParsingNl ? 'Thinking...' : '✨ Ask AI'}
           </button>
         </div>
