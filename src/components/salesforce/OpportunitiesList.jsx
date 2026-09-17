@@ -13,6 +13,7 @@ import { generateOpportunityExecSummary } from '../../services/aiActionsApi';
 import { useRecordPresence } from '../../hooks/usePresence';
 import { PresenceAvatars } from '../ui/PresenceAvatars';
 import { ConflictResolutionModal } from '../ui/ConflictResolutionModal';
+import { AccountPicker } from './RecordPickers';
 import {
   PlusIcon,
   EditIcon,
@@ -573,6 +574,11 @@ const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting
   const isOpen = Boolean(state);
   const mode = state?.mode;
   const [formData, setFormData] = useState(EMPTY_FORM);
+  // Display label for formData.AccountId, kept separate since AccountId
+  // itself (the actual Salesforce Id) is the only thing submitted - see
+  // AccountPicker below, which resolves a typed account NAME to its real Id
+  // so nobody has to know/paste a raw Salesforce Id by hand.
+  const [accountName, setAccountName] = useState('');
   const [validationError, setValidationError] = useState(null);
 
   const [execSummary, setExecSummary] = useState(null);
@@ -597,8 +603,10 @@ const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting
         AccountId: opp.AccountId || '',
         Description: opp.Description || '',
       });
+      setAccountName(opp.Account?.Name || '');
     } else {
       setFormData(EMPTY_FORM);
+      setAccountName('');
     }
     setValidationError(null);
     setExecSummary(null);
@@ -636,7 +644,7 @@ const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting
     setValidationError(null);
 
     if (!formData.Name || !formData.StageName || !formData.CloseDate || !formData.AccountId) {
-      setValidationError('Name, Stage, Close Date, and Account ID are required.');
+      setValidationError('Name, Stage, Close Date, and Account are required.');
       return;
     }
 
@@ -744,27 +752,27 @@ const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting
           </div>
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label>Amount</label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.Amount}
-              onChange={(e) => handleChange('Amount', e.target.value)}
-              placeholder="0.00"
-            />
-          </div>
-          <div className="form-group">
-            <label>Account ID *</label>
-            <input
-              type="text"
-              value={formData.AccountId}
-              onChange={(e) => handleChange('AccountId', e.target.value)}
-              placeholder="Salesforce Account ID"
-            />
-          </div>
+        <div className="form-group">
+          <AccountPicker
+            value={formData.AccountId}
+            label={accountName}
+            onChange={(id, name) => {
+              handleChange('AccountId', id || '');
+              setAccountName(name || '');
+            }}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Amount</label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={formData.Amount}
+            onChange={(e) => handleChange('Amount', e.target.value)}
+            placeholder="0.00"
+          />
         </div>
 
         <div className="form-group">
