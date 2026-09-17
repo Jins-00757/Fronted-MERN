@@ -105,21 +105,30 @@ export const useChatbot = () => {
 
   /**
    * confirmPendingAction - the only path that actually executes a mutating
-   * CRM action (e.g. approve-and-sync-to-Salesforce). Requires the user to
-   * have explicitly clicked "Confirm" on the pendingAction card - the
-   * backend re-validates everything again from scratch (see
+   * CRM action, whether it's a single approve-and-sync-to-Salesforce or a
+   * multi-step "create Account, link Opportunity, generate Quote" plan (see
+   * pendingAction.steps - an ordered array of {tool, args, placeholderId}
+   * the backend echoed back after planning). Requires the user to have
+   * explicitly clicked "Confirm" on the pendingAction card - the backend
+   * re-validates and re-executes every step from scratch (see
    * aiToolsService.confirmPendingAction), this is not just a client-side
-   * safeguard.
+   * safeguard. If a step partway through a multi-step plan fails, the
+   * backend reports exactly how many steps DID complete rather than an
+   * all-or-nothing result, since Salesforce writes to different objects
+   * aren't transactional across steps.
    */
   const confirmPendingActionCall = useCallback(async () => {
     if (!pendingAction || isConfirming) return;
     setIsConfirming(true);
     setError(null);
     try {
-      await confirmAssistantAction({ tool: pendingAction.tool, args: pendingAction.args });
-      setMessages((prev) => [...prev, { role: 'assistant', content: '✅ Done - the change was written to Salesforce.' }]);
+      await confirmAssistantAction({ steps: pendingAction.steps });
+      const doneWord = pendingAction.steps.length > 1 ? `all ${pendingAction.steps.length} steps were` : 'the change was';
+      setMessages((prev) => [...prev, { role: 'assistant', content: `✅ Done - ${doneWord} written to Salesforce.` }]);
     } catch (err) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: `❌ That didn't go through: ${err.message || 'unknown error'}` }]);
+      const completedCount = err.response?.data?.data?.completed?.length || 0;
+      const progressNote = completedCount > 0 ? ` (${completedCount} of ${pendingAction.steps.length} step${pendingAction.steps.length > 1 ? 's' : ''} did complete before this)` : '';
+      setMessages((prev) => [...prev, { role: 'assistant', content: `❌ That didn't go through: ${err.message || 'unknown error'}${progressNote}` }]);
     } finally {
       setPendingAction(null);
       setIsConfirming(false);

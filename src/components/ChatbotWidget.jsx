@@ -139,7 +139,7 @@ export const ChatbotWidget = () => {
               {messages.length === 0 && (
                 <div className="chatbot-empty">
                   {actionsEnabled
-                    ? 'Try "Approve quote Q-00123 and sync it to Salesforce" or "Find my quotes for Acme".'
+                    ? 'Try "Create an Account for Acme Corp, add an Opportunity for their renewal, and generate a quote" or "Approve quote Q-00123 and sync it to Salesforce".'
                     : 'Ask me to draft a follow-up email, explain a CRM feature, or summarize something you paste in.'}
                 </div>
               )}
