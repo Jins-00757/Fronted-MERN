@@ -10,6 +10,33 @@
 
 .search-form {
   position: relative;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.ai-search-form {
+  position: relative;
+}
+
+.ai-search-input {
+  border-color: rgba(21, 122, 110, 0.35);
+}
+
+.ai-search-error {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--danger-color);
+}
+
+.ai-search-interpretation {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
 }
 
 .search-input-group {

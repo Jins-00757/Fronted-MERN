@@ -9,6 +9,10 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { markSelfAction } from '../../utils/recentSelfActions';
 import { onDealClosed } from '../../utils/dealEvents';
 import { canManageSalesforceRecords } from '../../utils/permissions';
+import { generateOpportunityExecSummary } from '../../services/aiActionsApi';
+import { useRecordPresence } from '../../hooks/usePresence';
+import { PresenceAvatars } from '../ui/PresenceAvatars';
+import { ConflictResolutionModal } from '../ui/ConflictResolutionModal';
 import {
   PlusIcon,
   EditIcon,
@@ -67,6 +71,17 @@ const tomorrowISO = () => {
 const normalizeAmount = (value) =>
   value === '' || value === null || value === undefined ? null : parseFloat(value);
 
+// Human labels for the ConflictResolutionModal - matches
+// OPPORTUNITY_UPDATABLE_FIELDS in Backend-MERN's opportunitiesController.js.
+const OPPORTUNITY_FIELD_LABELS = {
+  Name: 'Name',
+  StageName: 'Stage',
+  CloseDate: 'Close Date',
+  Amount: 'Amount',
+  AccountId: 'Account',
+  Description: 'Description',
+};
+
 /**
  * OpportunitiesList - the routed Opportunities page. Full CRUD against
  * /api/salesforce/opportunities (paginated, filterable, cached server-side)
@@ -95,6 +110,10 @@ export const OpportunitiesList = () => {
   const [formState, setFormState] = useState(null); // null | { mode: 'create' } | { mode: 'edit', opportunity }
   const [confirmState, setConfirmState] = useState(null); // null | { type, opportunity }
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // null | { id, dealName, conflictLogId, conflicts, liveRecord } - see
+  // handleUpdate's 409 handling below and Backend-MERN's
+  // conflictResolutionService.js for the shape this comes from.
+  const [conflictState, setConflictState] = useState(null);
 
   useEffect(() => {
     // The board view fetches its own larger, unpaginated batch (see
@@ -172,7 +191,7 @@ export const OpportunitiesList = () => {
     }
   };
 
-  const handleUpdate = async (id, changedFields, dealName) => {
+  const handleUpdate = async (id, changedFields, dealName, baseLastModifiedDate, baseValues) => {
     if (Object.keys(changedFields).length === 0) {
       closeForm();
       return;
@@ -180,12 +199,63 @@ export const OpportunitiesList = () => {
     setIsSubmitting(true);
     markSelfAction(id, dealName);
     try {
-      await api.patch(`/salesforce/opportunities/${id}`, changedFields);
-      toast.success(`"${dealName}" was updated`);
+      const res = await api.patch(`/salesforce/opportunities/${id}`, { ...changedFields, baseLastModifiedDate, baseValues });
+      if (res.data.data?.mergedWithConcurrentChanges) {
+        toast.info(`"${dealName}" was also updated elsewhere - your changes were merged in safely`);
+      } else {
+        toast.success(`"${dealName}" was updated`);
+      }
       closeForm();
       refetch();
     } catch (err) {
-      toast.error(err.message || 'Failed to update opportunity');
+      if (err.status === 409 && err.response?.data?.code === 'CONFLICT') {
+        // Close the edit form and open the conflict resolver instead of
+        // stacking two modals - the conflict payload already carries
+        // everything needed to show what changed.
+        closeForm();
+        setConflictState({ id, dealName, ...err.response.data.data });
+      } else if (err.status === 409 && err.response?.data?.code === 'CONFLICT_DELETED') {
+        toast.error(err.response.data.message);
+        closeForm();
+        refetch();
+      } else {
+        toast.error(err.message || 'Failed to update opportunity');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResolveConflict = async (resolvedFields) => {
+    if (!conflictState) return;
+    setIsSubmitting(true);
+    try {
+      // Re-checks against the record's CURRENT state (using the live
+      // timestamp captured at conflict-detection time as the new baseline) -
+      // if yet another edit landed in the meantime, this surfaces a fresh
+      // conflict rather than blindly trusting the resolution is still valid.
+      const baseValues = {};
+      conflictState.conflicts.forEach((c) => { baseValues[c.field] = c.liveValue; });
+
+      const res = await api.patch(`/salesforce/opportunities/${conflictState.id}`, {
+        ...resolvedFields,
+        baseLastModifiedDate: conflictState.liveLastModifiedDate,
+        baseValues,
+        conflictLogId: conflictState.conflictLogId,
+      });
+
+      toast.success(res.data.data?.mergedWithConcurrentChanges
+        ? `"${conflictState.dealName}" was updated - the conflict was resolved`
+        : `"${conflictState.dealName}" was updated`);
+      setConflictState(null);
+      refetch();
+    } catch (err) {
+      if (err.status === 409 && err.response?.data?.code === 'CONFLICT') {
+        toast.error('This record changed again while you were resolving the last conflict - please review the new differences.');
+        setConflictState({ id: conflictState.id, dealName: conflictState.dealName, ...err.response.data.data });
+      } else {
+        toast.error(err.message || 'Failed to save resolved changes');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -430,6 +500,14 @@ export const OpportunitiesList = () => {
         danger={confirmState?.type === 'delete' || confirmState?.type === 'close-lost'}
         isLoading={isSubmitting}
       />
+
+      <ConflictResolutionModal
+        conflict={conflictState}
+        onResolve={handleResolveConflict}
+        onCancel={() => setConflictState(null)}
+        isSubmitting={isSubmitting}
+        fieldLabels={OPPORTUNITY_FIELD_LABELS}
+      />
     </div>
   );
 };
@@ -490,10 +568,20 @@ const FiltersBar = ({ filters, onChange }) => (
 );
 
 const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting }) => {
+  const toast = useToast();
+  const { user } = useAuth();
   const isOpen = Boolean(state);
   const mode = state?.mode;
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [validationError, setValidationError] = useState(null);
+
+  const [execSummary, setExecSummary] = useState(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+
+  // Soft, informational presence signal only - see hooks/usePresence.js.
+  // The conflict model (not this) is what actually catches a real collision.
+  const viewers = useRecordPresence('Opportunity', mode === 'edit' ? state?.opportunity?.Id : null);
+  const otherViewers = viewers.filter((v) => v.userId !== user?._id);
 
   useEffect(() => {
     if (!state) return;
@@ -513,7 +601,31 @@ const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting
       setFormData(EMPTY_FORM);
     }
     setValidationError(null);
+    setExecSummary(null);
   }, [state]);
+
+  const handleGenerateSummary = async () => {
+    if (!formData.Description.trim()) {
+      toast.error('Type some notes in Description first');
+      return;
+    }
+    setIsSummarizing(true);
+    try {
+      const result = await generateOpportunityExecSummary({
+        opportunityId: mode === 'edit' ? state.opportunity.Id : undefined,
+        opportunityName: formData.Name,
+        accountName: state?.opportunity?.Account?.Name,
+        stage: formData.StageName,
+        amount: formData.Amount,
+        notes: formData.Description,
+      });
+      setExecSummary(result.summary);
+    } catch (err) {
+      toast.error(err.message || 'Failed to generate summary');
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -545,9 +657,20 @@ const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting
     // (e.g. just the Amount) would be wrongly rejected.
     const original = state.opportunity;
     const changed = {};
+    // The value each changed field had when this form loaded - the conflict
+    // model's 3-way merge needs this "base" alongside the live Salesforce
+    // value to tell "nobody else touched this field" apart from a real
+    // conflict (see Backend-MERN's conflictResolutionService.computeConflict).
+    const baseValues = {};
 
-    if (formData.Name !== (original.Name || '')) changed.Name = formData.Name;
-    if (formData.StageName !== (original.StageName || '')) changed.StageName = formData.StageName;
+    if (formData.Name !== (original.Name || '')) {
+      changed.Name = formData.Name;
+      baseValues.Name = original.Name ?? null;
+    }
+    if (formData.StageName !== (original.StageName || '')) {
+      changed.StageName = formData.StageName;
+      baseValues.StageName = original.StageName ?? null;
+    }
 
     const originalCloseDate = original.CloseDate ? original.CloseDate.slice(0, 10) : '';
     if (formData.CloseDate !== originalCloseDate) {
@@ -556,15 +679,23 @@ const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting
         return;
       }
       changed.CloseDate = formData.CloseDate;
+      baseValues.CloseDate = original.CloseDate ?? null;
     }
 
     if (normalizeAmount(formData.Amount) !== normalizeAmount(original.Amount)) {
       changed.Amount = normalizeAmount(formData.Amount);
+      baseValues.Amount = original.Amount ?? null;
     }
-    if (formData.AccountId !== (original.AccountId || '')) changed.AccountId = formData.AccountId;
-    if (formData.Description !== (original.Description || '')) changed.Description = formData.Description;
+    if (formData.AccountId !== (original.AccountId || '')) {
+      changed.AccountId = formData.AccountId;
+      baseValues.AccountId = original.AccountId ?? null;
+    }
+    if (formData.Description !== (original.Description || '')) {
+      changed.Description = formData.Description;
+      baseValues.Description = original.Description ?? null;
+    }
 
-    onUpdate(original.Id, changed, formData.Name);
+    onUpdate(original.Id, changed, formData.Name, original.LastModifiedDate, baseValues);
   };
 
   return (
@@ -574,6 +705,12 @@ const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting
       title={mode === 'edit' ? 'Edit Opportunity' : 'New Opportunity'}
       maxWidth={560}
     >
+      {otherViewers.length > 0 && (
+        <div className="opp-presence-banner">
+          <PresenceAvatars users={otherViewers} size={22} />
+          <span>{otherViewers.map((v) => v.name).join(', ')} {otherViewers.length === 1 ? 'is' : 'are'} also viewing this opportunity</span>
+        </div>
+      )}
       <form className="opp-form" onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Opportunity Name *</label>
@@ -638,7 +775,22 @@ const OpportunityFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting
             onChange={(e) => handleChange('Description', e.target.value)}
             placeholder="Add any relevant notes..."
           />
+          <button
+            type="button"
+            className="btn-modal-secondary opp-exec-summary-btn"
+            onClick={handleGenerateSummary}
+            disabled={isSummarizing || !formData.Description.trim()}
+          >
+            {isSummarizing ? 'Summarizing...' : '✨ Generate Executive Summary'}
+          </button>
         </div>
+
+        {execSummary && (
+          <div className="opp-exec-summary-panel">
+            <label>AI Executive Summary</label>
+            <p>{execSummary}</p>
+          </div>
+        )}
 
         {validationError && <div className="opp-form-error">{validationError}</div>}
 

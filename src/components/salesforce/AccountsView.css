@@ -202,6 +202,22 @@
   align-self: flex-start;
 }
 
+.account-edit-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.account-activity-summary {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
 .account-detail-section-title {
   display: flex;
   align-items: center;

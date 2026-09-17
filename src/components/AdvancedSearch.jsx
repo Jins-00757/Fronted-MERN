@@ -1,22 +1,30 @@
 
 import  { useState, useEffect } from 'react';
 import api from '../services/api';
+import { parseSearchQuery } from '../services/aiActionsApi';
 import { DownloadIcon } from './ui/DashboardIcons';
 import './AdvancedSearch.css';
 
+const EMPTY_FILTERS = {
+  minAmount: '',
+  maxAmount: '',
+  stage: '',
+  startDate: '',
+  endDate: '',
+  sortBy: 'relevance',
+};
+
 export const AdvancedSearch = ({ onResults }) => {
   const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState({
-    minAmount: '',
-    maxAmount: '',
-    stage: '',
-    startDate: '',
-    endDate: '',
-    sortBy: 'relevance',
-  });
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [suggestions, setSuggestions] = useState([]);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [nlQuery, setNlQuery] = useState('');
+  const [isParsingNl, setIsParsingNl] = useState(false);
+  const [nlError, setNlError] = useState(null);
+  const [nlInterpretation, setNlInterpretation] = useState(null);
 
   // Get suggestions as user types. An AbortController guards against a race
   // where an earlier keystroke's request resolves after a later one (slow
@@ -53,16 +61,14 @@ export const AdvancedSearch = ({ onResults }) => {
     };
   }, [query]);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
+  // Shared by the manual "Search" button and the AI query bar below, so both
+  // paths run the exact same request - the AI bar never has its own way of
+  // reaching Salesforce, it only ever pre-fills these same params.
+  const runSearch = async (q, activeFilters) => {
     setLoading(true);
-
     try {
       const response = await api.get('/search/opportunities', {
-        params: {
-          q: query,
-          ...filters,
-        },
+        params: { q, ...activeFilters },
       });
 
       setResults(response.data.results || []);
@@ -73,6 +79,48 @@ export const AdvancedSearch = ({ onResults }) => {
       console.error('Search error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    runSearch(query, filters);
+  };
+
+  const handleNlSearch = async (e) => {
+    e.preventDefault();
+    if (!nlQuery.trim()) return;
+
+    setIsParsingNl(true);
+    setNlError(null);
+    setNlInterpretation(null);
+
+    try {
+      // The backend only ever returns a validated filter object matching
+      // this form's own fields (see aiActionsController.parseSearchQuery) -
+      // it never runs a search itself, so what happens next is exactly what
+      // typing these values in by hand and clicking Search would do.
+      const { filters: parsed } = await parseSearchQuery(nlQuery);
+
+      const nextFilters = {
+        stage: parsed.stage ?? '',
+        minAmount: parsed.minAmount !== undefined ? String(parsed.minAmount) : '',
+        maxAmount: parsed.maxAmount !== undefined ? String(parsed.maxAmount) : '',
+        startDate: parsed.startDate ?? '',
+        endDate: parsed.endDate ?? '',
+        sortBy: parsed.sortBy || 'relevance',
+      };
+      const nextQuery = parsed.keyword || '';
+
+      setQuery(nextQuery);
+      setFilters(nextFilters);
+      setNlInterpretation({ query: nextQuery, ...nextFilters });
+
+      await runSearch(nextQuery, nextFilters);
+    } catch (error) {
+      setNlError(error.message || 'Failed to understand that search - try rephrasing it or use the filters below.');
+    } finally {
+      setIsParsingNl(false);
     }
   };
 
@@ -116,6 +164,34 @@ export const AdvancedSearch = ({ onResults }) => {
 
   return (
     <div className="advanced-search">
+      <form onSubmit={handleNlSearch} className="ai-search-form">
+        <div className="search-input-group">
+          <input
+            type="text"
+            value={nlQuery}
+            onChange={(e) => setNlQuery(e.target.value)}
+            placeholder='Try "show me won deals over $50k in Q3, newest first"'
+            className="search-input ai-search-input"
+          />
+          <button type="submit" className="btn-secondary" disabled={isParsingNl || !nlQuery.trim()}>
+            {isParsingNl ? 'Thinking...' : '✨ Ask AI'}
+          </button>
+        </div>
+        {nlError && <div className="ai-search-error">{nlError}</div>}
+        {nlInterpretation && !nlError && (
+          <div className="ai-search-interpretation">
+            AI interpreted this as: {[
+              nlInterpretation.query && `keyword "${nlInterpretation.query}"`,
+              nlInterpretation.stage && `stage ${nlInterpretation.stage}`,
+              nlInterpretation.minAmount && `min $${Number(nlInterpretation.minAmount).toLocaleString()}`,
+              nlInterpretation.maxAmount && `max $${Number(nlInterpretation.maxAmount).toLocaleString()}`,
+              nlInterpretation.startDate && `from ${nlInterpretation.startDate}`,
+              nlInterpretation.endDate && `to ${nlInterpretation.endDate}`,
+            ].filter(Boolean).join(', ') || 'no specific filters recognized - showing all results'}. Adjust the filters below and search again if needed.
+          </div>
+        )}
+      </form>
+
       <form onSubmit={handleSearch} className="search-form">
         <div className="search-input-group">
           <input

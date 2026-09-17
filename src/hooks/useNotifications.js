@@ -22,6 +22,12 @@ const DEFAULT_EVENT_TYPES = [
   // celebratory toast this also drives.
   'deal.won',
   'deal.lost',
+  // Pushed to a rep's manager when they submit a discount-justification note
+  // for approval (see Backend-MERN's quotesController.submitDiscountJustification,
+  // triggered from QuoteBuilder.jsx). NotificationCenter.jsx's default icon
+  // case already renders any unrecognized type generically, so no per-type
+  // icon is required for this to show up correctly.
+  'quote.discount_justification',
 ];
 
 /**

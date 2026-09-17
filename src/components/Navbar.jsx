@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { NotificationCenter } from './NotificationCenter';
 import { ActivityFeed } from './ActivityFeed';
 import { useNotifications } from '../hooks/useNotifications';
+import { usePresence } from '../hooks/usePresence';
+import { PresenceAvatars } from './ui/PresenceAvatars';
 import { Logo } from './ui/Logo';
 import { SunIcon, MoonIcon } from './ui/ThemeIcons';
 import { MailIcon, UserIcon } from './ui/AuthIcons';
@@ -131,6 +133,7 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
   const [isActivityOpen, setIsActivityOpen] = useState(false);
 
   const { notifications, isConnected, clearNotifications } = useNotifications();
+  const { onlineUsers } = usePresence();
   const [unreadCount, setUnreadCount] = useState(0);
   // Timestamp of the last time the dropdown was opened - notifications
   // newer than this count as unread. null (never opened yet) means
@@ -267,6 +270,14 @@ export const Navbar = ({ onSalesforceClick, onOpenCommandPalette, onToggleSideba
                   </div>
                 )}
               </div>
+              {onlineUsers.filter((u) => u.userId !== user?._id).length > 0 && (
+                <div
+                  className="navbar-presence"
+                  title={`Online now: ${onlineUsers.filter((u) => u.userId !== user?._id).map((u) => u.name).join(', ')}`}
+                >
+                  <PresenceAvatars users={onlineUsers} excludeUserId={user?._id} max={4} size={24} />
+                </div>
+              )}
               {user?.isSalesforceConnected ? (
                 <span className="salesforce-badge" title={user?.salesforceOrgName || 'Salesforce'}>
                   <CheckCircleIcon width={14} height={14} /> <span className="salesforce-badge-label">Salesforce</span>

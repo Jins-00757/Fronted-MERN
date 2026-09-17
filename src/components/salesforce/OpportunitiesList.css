@@ -314,3 +314,55 @@
     flex: 1;
   }
 }
+
+/* ========================================================================
+   AI EXECUTIVE SUMMARY - Description field's "Generate Summary" action.
+   ======================================================================== */
+
+.opp-exec-summary-btn {
+  align-self: flex-start;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.opp-exec-summary-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+}
+
+.opp-exec-summary-panel label {
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.opp-exec-summary-panel p {
+  margin: 0;
+  font-size: 0.87rem;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+
+/* ========================================================================
+   PRESENCE - "someone else has this open" soft warning banner.
+   ======================================================================== */
+
+.opp-presence-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}

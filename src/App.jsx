@@ -36,6 +36,7 @@ import { BriefcaseIcon, CheckCircleIcon, DollarIcon, ListIcon, UsersIcon, Trendi
 import { isElevatedRole } from './utils/permissions';
 import { CommandPalette } from './components/ui/CommandPalette';
 import { GlobalActivityToaster } from './components/GlobalActivityToaster';
+import { ChatbotWidget } from './components/ChatbotWidget';
 import { DealWonCelebration } from './components/DealWonCelebration';
 import { onDealClosed } from './utils/dealEvents';
 import { downloadFileFromLink } from './utils/secureDownload';
@@ -144,6 +145,7 @@ function App() {
             <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
             <GlobalActivityToaster />
             <DealWonCelebration />
+            <ChatbotWidget />
           </>
         )}
 

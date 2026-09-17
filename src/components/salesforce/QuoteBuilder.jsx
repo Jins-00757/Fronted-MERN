@@ -1,16 +1,50 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import api from '../../services/api';
 import { useToast } from '../../context/useToast';
 import { markSelfAction } from '../../utils/recentSelfActions';
 import { downloadFileFromLink } from '../../utils/secureDownload';
 import { calculateLineTotal, calculateQuoteTotals, formatCurrency } from '../../utils/quoteCalculations';
+import { draftQuoteDiscountJustification } from '../../services/aiActionsApi';
+import { useRecordPresence } from '../../hooks/usePresence';
+import { PresenceAvatars } from '../ui/PresenceAvatars';
+import { ConflictResolutionModal } from '../ui/ConflictResolutionModal';
 import { Modal } from '../ui/Modal';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { OpportunityPicker, ProductPicker } from './RecordPickers';
-import { TrashIcon, DownloadIcon, MailIcon, PlusIcon } from '../ui/DashboardIcons';
+import { TrashIcon, DownloadIcon, MailIcon, PlusIcon, AlertTriangleIcon } from '../ui/DashboardIcons';
 import { canManageSalesforceRecords } from '../../utils/permissions';
 import { useAuth } from '../../context/useAuth';
 import './QuoteBuilder.css';
+
+// Above this discount depth (header or any single line item), the UI offers
+// an AI-drafted justification note the rep can send their manager for
+// approval - see quotesController.submitDiscountJustification on the backend.
+const DISCOUNT_JUSTIFICATION_THRESHOLD = 15;
+
+// Local header state key -> the Salesforce Quote field it maps to. Drives
+// both the diff handleSave() sends on an edit (only actually-changed fields,
+// each paired with its loaded "base" value for the conflict model's 3-way
+// merge - see Backend-MERN's conflictResolutionService.js) and
+// ConflictResolutionModal's field labels.
+const HEADER_FIELD_MAP = [
+  ['name', 'Name'],
+  ['expirationDate', 'ExpirationDate'],
+  ['description', 'Description'],
+  ['discount', 'Discount'],
+  ['tax', 'Tax'],
+  ['shippingHandling', 'ShippingHandling'],
+  ['status', 'Status'],
+];
+
+const QUOTE_FIELD_LABELS = {
+  Name: 'Quote Name',
+  ExpirationDate: 'Expiration Date',
+  Description: 'Notes',
+  Discount: 'Discount %',
+  Tax: 'Tax',
+  ShippingHandling: 'Shipping & Handling',
+  Status: 'Status',
+};
 
 let localRowSeq = 0;
 const nextLocalKey = () => `new-${Date.now()}-${localRowSeq++}`;
@@ -103,7 +137,28 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [justificationText, setJustificationText] = useState('');
+  const [isDraftingJustification, setIsDraftingJustification] = useState(false);
+  const [isSubmittingJustification, setIsSubmittingJustification] = useState(false);
+  const [justificationSubmittedAt, setJustificationSubmittedAt] = useState(null);
+
+  // The header exactly as loaded (or as last successfully saved) - handleSave
+  // diffs the live `header` state against this to find which fields the rep
+  // actually touched, and `baseLastModifiedDate` is the conflict model's
+  // optimistic-concurrency version stamp (see conflictResolutionService.js
+  // on the backend). A ref, not state: it's only ever read at save time, not
+  // rendered, so it shouldn't trigger re-renders when updated.
+  const baseHeaderRef = useRef(EMPTY_HEADER);
+  const [baseLastModifiedDate, setBaseLastModifiedDate] = useState(null);
+  // null | { id, conflictLogId, conflicts, liveRecord, liveLastModifiedDate }
+  const [conflictState, setConflictState] = useState(null);
+
   const isEditingExisting = Boolean(currentQuoteId);
+
+  // Soft, informational presence signal only (see hooks/usePresence.js) -
+  // the conflict model above is what actually catches a real collision.
+  const viewers = useRecordPresence('Quote', currentQuoteId);
+  const otherViewers = viewers.filter((v) => v.userId !== user?._id);
 
   useEffect(() => {
     api.get('/salesforce/quotes/meta/statuses').then((res) => setStatuses(res.data.data || [])).catch(() => {});
@@ -121,7 +176,7 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
       .then((res) => {
         if (cancelled) return;
         const { quote, lineItems: fetchedLines } = res.data.data;
-        setHeader({
+        const loadedHeader = {
           name: quote.Name || '',
           opportunityId: quote.OpportunityId,
           opportunityName: quote.Opportunity?.Name || '',
@@ -133,7 +188,10 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
           tax: quote.Tax || 0,
           shippingHandling: quote.ShippingHandling || 0,
           status: quote.Status || '',
-        });
+        };
+        setHeader(loadedHeader);
+        baseHeaderRef.current = loadedHeader;
+        setBaseLastModifiedDate(quote.LastModifiedDate || null);
         setQuoteNumber(quote.QuoteNumber || null);
         setServerTotals({ subtotal: quote.Subtotal, grandTotal: quote.GrandTotal });
         setLineItems(fetchedLines.map(fromSalesforceLineItem));
@@ -152,6 +210,17 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
     () => calculateQuoteTotals({ lineItems, discount: header.discount, tax: header.tax, shippingHandling: header.shippingHandling }),
     [lineItems, header.discount, header.tax, header.shippingHandling]
   );
+
+  // Worst-case discount depth across the header and every line item - a deep
+  // line-level discount matters just as much as a deep header discount, so
+  // the justification prompt looks at whichever is higher.
+  const headerDiscount = Number(header.discount) || 0;
+  const maxLineDiscount = useMemo(
+    () => lineItems.reduce((max, row) => Math.max(max, Number(row.discount) || 0), 0),
+    [lineItems]
+  );
+  const maxDiscountPercent = Math.max(headerDiscount, maxLineDiscount);
+  const needsDiscountJustification = maxDiscountPercent > DISCOUNT_JUSTIFICATION_THRESHOLD;
 
   const updateHeader = (field, value) => setHeader((prev) => ({ ...prev, [field]: value }));
 
@@ -191,6 +260,47 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
     });
   };
 
+  /**
+   * Shared tail of every successful header write (create, plain edit, or a
+   * resolved-conflict retry): save line items, then refetch so the summary
+   * panel reflects Salesforce's own computed rollups and this quote's
+   * conflict-model baseline (header snapshot + LastModifiedDate) is current
+   * for the next save.
+   */
+  const saveLineItemsAndRefresh = async (idToUse) => {
+    const lineItemsRes = await api.put(`/salesforce/quotes/${idToUse}/line-items`, { lineItems: toApiLineItems(lineItems) });
+
+    if (lineItemsRes.data.data?.orphanedOldIds?.length > 0) {
+      toast.error(lineItemsRes.data.message || 'Some old line items could not be removed - please save again');
+    } else {
+      toast.success('Quote saved successfully');
+    }
+
+    const refreshed = await api.get(`/salesforce/quotes/${idToUse}`);
+    const { quote, lineItems: freshLines } = refreshed.data.data;
+    const refreshedHeader = {
+      name: quote.Name || '',
+      opportunityId: quote.OpportunityId,
+      opportunityName: quote.Opportunity?.Name || '',
+      accountId: quote.Opportunity?.AccountId || null,
+      accountName: quote.Opportunity?.Account?.Name || '',
+      expirationDate: quote.ExpirationDate || '',
+      description: quote.Description || '',
+      discount: quote.Discount || 0,
+      tax: quote.Tax || 0,
+      shippingHandling: quote.ShippingHandling || 0,
+      status: quote.Status || '',
+    };
+    setQuoteNumber(quote.QuoteNumber || null);
+    setServerTotals({ subtotal: quote.Subtotal, grandTotal: quote.GrandTotal });
+    setLineItems(freshLines.map(fromSalesforceLineItem));
+    setHeader(refreshedHeader);
+    baseHeaderRef.current = refreshedHeader;
+    setBaseLastModifiedDate(quote.LastModifiedDate || null);
+
+    onSaved?.();
+  };
+
   const handleSave = async () => {
     if (!header.name.trim()) {
       toast.error('Quote name is required');
@@ -203,52 +313,101 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
 
     setIsSaving(true);
     try {
-      const headerPayload = {
-        Name: header.name.trim(),
-        ExpirationDate: header.expirationDate || null,
-        Description: header.description || null,
-        Discount: header.discount || 0,
-        Tax: header.tax || 0,
-        ShippingHandling: header.shippingHandling || 0,
-        ...(isEditingExisting && header.status ? { Status: header.status } : {}),
-      };
-
       let idToUse = currentQuoteId;
 
       if (!idToUse) {
+        const headerPayload = {
+          Name: header.name.trim(),
+          ExpirationDate: header.expirationDate || null,
+          Description: header.description || null,
+          Discount: header.discount || 0,
+          Tax: header.tax || 0,
+          ShippingHandling: header.shippingHandling || 0,
+        };
         const createRes = await api.post('/salesforce/quotes', { ...headerPayload, OpportunityId: header.opportunityId });
         idToUse = createRes.data.data.id;
         setCurrentQuoteId(idToUse);
         markSelfAction(idToUse);
       } else {
-        await api.patch(`/salesforce/quotes/${idToUse}`, headerPayload);
-        markSelfAction(idToUse);
+        // Only send fields the rep actually changed, each paired with the
+        // value it had when this quote loaded - the conflict model's 3-way
+        // merge needs that "base" to tell "nobody else touched this field"
+        // apart from a real conflict. Resending every field unconditionally
+        // (as this used to do) would falsely flag a conflict on any field
+        // the rep never touched but someone else did.
+        const changedFields = {};
+        const baseValues = {};
+        HEADER_FIELD_MAP.forEach(([localKey, sfField]) => {
+          const current = localKey === 'name' ? header.name.trim() : header[localKey];
+          const base = baseHeaderRef.current[localKey];
+          if (localKey === 'status' && !current) return; // never overwrite Status with empty
+          if (String(current ?? '') !== String(base ?? '')) {
+            changedFields[sfField] = current;
+            baseValues[sfField] = base;
+          }
+        });
+
+        if (Object.keys(changedFields).length > 0) {
+          try {
+            const res = await api.patch(`/salesforce/quotes/${idToUse}`, { ...changedFields, baseLastModifiedDate, baseValues });
+            if (res.data.data?.mergedWithConcurrentChanges) {
+              toast.info('This quote was also updated elsewhere - your header changes were merged in safely');
+            }
+          } catch (err) {
+            if (err.status === 409 && err.response?.data?.code === 'CONFLICT') {
+              setConflictState({ id: idToUse, ...err.response.data.data });
+              return;
+            }
+            if (err.status === 409 && err.response?.data?.code === 'CONFLICT_DELETED') {
+              toast.error(err.response.data.message);
+              onClose();
+              return;
+            }
+            throw err;
+          }
+          markSelfAction(idToUse);
+        }
       }
 
-      const lineItemsRes = await api.put(`/salesforce/quotes/${idToUse}/line-items`, { lineItems: toApiLineItems(lineItems) });
-
-      if (lineItemsRes.data.data?.orphanedOldIds?.length > 0) {
-        toast.error(lineItemsRes.data.message || 'Some old line items could not be removed - please save again');
-      } else {
-        toast.success('Quote saved successfully');
-      }
-
-      // Refetch so the summary panel reflects Salesforce's own computed
-      // Subtotal/GrandTotal rollups, not just our client-side preview.
-      const refreshed = await api.get(`/salesforce/quotes/${idToUse}`);
-      const { quote, lineItems: freshLines } = refreshed.data.data;
-      setQuoteNumber(quote.QuoteNumber || null);
-      setServerTotals({ subtotal: quote.Subtotal, grandTotal: quote.GrandTotal });
-      setLineItems(freshLines.map(fromSalesforceLineItem));
-      setHeader((prev) => ({
-        ...prev,
-        status: quote.Status || prev.status,
-        accountId: quote.Opportunity?.AccountId || prev.accountId,
-      }));
-
-      onSaved?.();
+      await saveLineItemsAndRefresh(idToUse);
     } catch (err) {
       toast.error(err.message || 'Failed to save quote');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleResolveConflict = async (resolvedFields) => {
+    if (!conflictState) return;
+    setIsSaving(true);
+    try {
+      // Re-checks against the record's CURRENT state (the live timestamp
+      // captured at detection time becomes the new baseline) - if yet
+      // another edit landed while the rep was resolving this one, that
+      // surfaces as a fresh conflict rather than being silently trusted.
+      const baseValues = {};
+      conflictState.conflicts.forEach((c) => { baseValues[c.field] = c.liveValue; });
+
+      const res = await api.patch(`/salesforce/quotes/${conflictState.id}`, {
+        ...resolvedFields,
+        baseLastModifiedDate: conflictState.liveLastModifiedDate,
+        baseValues,
+        conflictLogId: conflictState.conflictLogId,
+      });
+
+      if (res.data.data?.mergedWithConcurrentChanges) {
+        toast.info('Conflict resolved - this quote was also updated elsewhere');
+      }
+      markSelfAction(conflictState.id);
+      setConflictState(null);
+      await saveLineItemsAndRefresh(conflictState.id);
+    } catch (err) {
+      if (err.status === 409 && err.response?.data?.code === 'CONFLICT') {
+        toast.error('This quote changed again while you were resolving the last conflict - please review the new differences.');
+        setConflictState({ id: conflictState.id, ...err.response.data.data });
+      } else {
+        toast.error(err.message || 'Failed to save resolved changes');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -350,8 +509,62 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
     }
   };
 
+  const handleDraftJustification = async () => {
+    setIsDraftingJustification(true);
+    try {
+      const { text } = await draftQuoteDiscountJustification({
+        quoteId: currentQuoteId,
+        quoteName: header.name || 'this quote',
+        accountName: header.accountName,
+        grandTotal: totals.grandTotal,
+        discountPercent: maxDiscountPercent,
+        isLineLevel: maxLineDiscount > headerDiscount,
+      });
+      setJustificationText(text);
+    } catch (err) {
+      toast.error(err.message || 'Failed to draft a justification note');
+    } finally {
+      setIsDraftingJustification(false);
+    }
+  };
+
+  const handleSubmitJustification = async () => {
+    if (!currentQuoteId) {
+      toast.error('Save the quote before submitting a discount justification');
+      return;
+    }
+    if (!justificationText.trim()) {
+      toast.error('Write or generate a justification note first');
+      return;
+    }
+
+    setIsSubmittingJustification(true);
+    try {
+      const res = await api.post(`/salesforce/quotes/${currentQuoteId}/discount-justification`, {
+        opportunityId: header.opportunityId,
+        quoteName: header.name,
+        accountName: header.accountName,
+        discountPercent: maxDiscountPercent,
+        justificationText: justificationText.trim(),
+      });
+      toast.success(res.data.message || 'Discount justification submitted');
+      setJustificationSubmittedAt(new Date());
+    } catch (err) {
+      toast.error(err.message || 'Failed to submit discount justification');
+    } finally {
+      setIsSubmittingJustification(false);
+    }
+  };
+
   return (
+    <>
     <Modal isOpen title={isEditingExisting ? `${header.name || 'Quote'}${quoteNumber ? ` · #${quoteNumber}` : ''}` : 'New Quote'} onClose={onClose} maxWidth={880}>
+      {otherViewers.length > 0 && (
+        <div className="quote-presence-banner">
+          <PresenceAvatars users={otherViewers} size={22} />
+          <span>{otherViewers.map((v) => v.name).join(', ')} {otherViewers.length === 1 ? 'is' : 'are'} also viewing this quote</span>
+        </div>
+      )}
       {isLoading ? (
         <div className="quote-builder-loading">Loading quote...</div>
       ) : loadError ? (
@@ -519,6 +732,47 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
             </div>
           </div>
 
+          {needsDiscountJustification && (
+            <div className="quote-discount-justification">
+              <div className="quote-discount-justification-header">
+                <AlertTriangleIcon width={15} height={15} />
+                <strong>Discount Justification Required</strong>
+                <span>{maxDiscountPercent}% discount exceeds the {DISCOUNT_JUSTIFICATION_THRESHOLD}% approval threshold</span>
+              </div>
+
+              {justificationSubmittedAt ? (
+                <p className="quote-discount-justification-done">
+                  Submitted to your manager at {justificationSubmittedAt.toLocaleTimeString()}.
+                </p>
+              ) : (
+                <>
+                  <textarea
+                    rows={3}
+                    placeholder="Explain why this discount is warranted, or generate a draft with AI..."
+                    value={justificationText}
+                    onChange={(e) => setJustificationText(e.target.value)}
+                  />
+                  <div className="quote-discount-justification-actions">
+                    <button type="button" className="btn-modal-secondary" onClick={handleDraftJustification} disabled={isDraftingJustification}>
+                      {isDraftingJustification ? 'Drafting...' : '✨ Draft with AI'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-modal-primary"
+                      onClick={handleSubmitJustification}
+                      disabled={isSubmittingJustification || !justificationText.trim()}
+                    >
+                      {isSubmittingJustification ? 'Submitting...' : 'Submit to Manager'}
+                    </button>
+                  </div>
+                  {!isEditingExisting && (
+                    <p className="quote-discount-justification-hint">Save the quote first so it has an id to attach this to.</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           {emailPanelOpen && (
             <form className="quote-email-panel" onSubmit={handleSendEmail}>
               {contactsLoading ? (
@@ -596,6 +850,15 @@ export const QuoteBuilder = ({ quoteId: initialQuoteId, initialOpportunityId, on
         isLoading={isDeleting}
       />
     </Modal>
+
+    <ConflictResolutionModal
+      conflict={conflictState}
+      onResolve={handleResolveConflict}
+      onCancel={() => setConflictState(null)}
+      isSubmitting={isSaving}
+      fieldLabels={QUOTE_FIELD_LABELS}
+    />
+    </>
   );
 };
 

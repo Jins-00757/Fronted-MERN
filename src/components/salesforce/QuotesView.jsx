@@ -2,10 +2,16 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
+import { useToast } from '../../context/useToast';
+import { draftQuoteEmail, getQuoteRisk } from '../../services/aiActionsApi';
 import { QuoteBuilder } from './QuoteBuilder';
-import { PlusIcon, SearchIcon, EmptyBoxIllustration, FileTextIcon } from '../ui/DashboardIcons';
+import { Modal } from '../ui/Modal';
+import { PlusIcon, SearchIcon, EmptyBoxIllustration, FileTextIcon, MailIcon, AlertTriangleIcon } from '../ui/DashboardIcons';
 import { formatCurrency } from '../../utils/quoteCalculations';
 import './QuotesView.css';
+
+const RISK_TONE = { green: 'ai-risk-green', amber: 'ai-risk-amber', red: 'ai-risk-red' };
+const RISK_LABEL = { green: 'Low Risk', amber: 'Moderate Risk', red: 'High Risk' };
 
 const STATUS_TONE = {
   Draft: 'quote-status-draft',
@@ -25,6 +31,7 @@ const STATUS_TONE = {
  * land pre-filtered - see AccountsView's account detail modal.
  */
 export const QuotesView = () => {
+  const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const opportunityId = searchParams.get('opportunityId');
 
@@ -38,6 +45,38 @@ export const QuotesView = () => {
   const debounceRef = useRef(null);
 
   const [builderState, setBuilderState] = useState(null); // null | {quoteId} | {quoteId: null}
+
+  // Per-row AI action state, keyed by quote.Id - a plain map rather than one
+  // shared loading flag, since several rows' "Check Risk"/"Draft Email"
+  // buttons can be in flight independently.
+  const [aiState, setAiState] = useState({});
+  const [emailDraftFor, setEmailDraftFor] = useState(null); // null | quote.Id
+
+  const patchAiState = (quoteId, patch) =>
+    setAiState((prev) => ({ ...prev, [quoteId]: { ...prev[quoteId], ...patch } }));
+
+  const handleCheckRisk = async (e, quoteId) => {
+    e.stopPropagation();
+    patchAiState(quoteId, { riskLoading: true, riskError: null });
+    try {
+      const data = await getQuoteRisk(quoteId);
+      patchAiState(quoteId, { riskLoading: false, risk: data });
+    } catch (err) {
+      patchAiState(quoteId, { riskLoading: false, riskError: err.message || 'Failed to check risk' });
+    }
+  };
+
+  const handleDraftEmail = async (e, quoteId) => {
+    e.stopPropagation();
+    setEmailDraftFor(quoteId);
+    patchAiState(quoteId, { emailLoading: true, emailError: null, email: null });
+    try {
+      const data = await draftQuoteEmail(quoteId);
+      patchAiState(quoteId, { emailLoading: false, email: data });
+    } catch (err) {
+      patchAiState(quoteId, { emailLoading: false, emailError: err.message || 'Failed to draft email' });
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -132,33 +171,68 @@ export const QuotesView = () => {
                 <th>Status</th>
                 <th>Expires</th>
                 <th>Grand Total</th>
+                <th>AI</th>
               </tr>
             </thead>
             <tbody>
               <AnimatePresence initial={false}>
-                {quotes.map((quote) => (
-                  <motion.tr
-                    key={quote.Id}
-                    layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    onClick={() => setBuilderState({ quoteId: quote.Id })}
-                  >
-                    <td>
-                      <div className="quotes-name-cell">
-                        <FileTextIcon width={14} height={14} /> {quote.Name}
-                      </div>
-                      {quote.QuoteNumber && <div className="quotes-number-cell">#{quote.QuoteNumber}</div>}
-                    </td>
-                    <td>{quote.Opportunity?.Account?.Name || '—'}</td>
-                    <td>{quote.Opportunity?.Name || '—'}</td>
-                    <td><span className={`quote-status-pill ${STATUS_TONE[quote.Status] || ''}`}>{quote.Status || '—'}</span></td>
-                    <td>{quote.ExpirationDate || '—'}</td>
-                    <td className="quotes-total-cell">{formatCurrency(quote.GrandTotal)}</td>
-                  </motion.tr>
-                ))}
+                {quotes.map((quote) => {
+                  const rowAi = aiState[quote.Id] || {};
+                  return (
+                    <motion.tr
+                      key={quote.Id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      onClick={() => setBuilderState({ quoteId: quote.Id })}
+                    >
+                      <td>
+                        <div className="quotes-name-cell">
+                          <FileTextIcon width={14} height={14} /> {quote.Name}
+                        </div>
+                        {quote.QuoteNumber && <div className="quotes-number-cell">#{quote.QuoteNumber}</div>}
+                      </td>
+                      <td>{quote.Opportunity?.Account?.Name || '—'}</td>
+                      <td>{quote.Opportunity?.Name || '—'}</td>
+                      <td><span className={`quote-status-pill ${STATUS_TONE[quote.Status] || ''}`}>{quote.Status || '—'}</span></td>
+                      <td>{quote.ExpirationDate || '—'}</td>
+                      <td className="quotes-total-cell">{formatCurrency(quote.GrandTotal)}</td>
+                      <td className="quotes-ai-cell">
+                        <button
+                          type="button"
+                          className="ai-action-btn"
+                          onClick={(e) => handleDraftEmail(e, quote.Id)}
+                          disabled={rowAi.emailLoading}
+                          title="Draft a follow-up email with AI"
+                        >
+                          <MailIcon width={13} height={13} /> {rowAi.emailLoading ? '...' : 'Draft Email'}
+                        </button>
+
+                        {rowAi.risk ? (
+                          <span
+                            className={`ai-risk-badge ${RISK_TONE[rowAi.risk.riskLevel] || ''}`}
+                            title={rowAi.risk.reasons?.join(' · ') || RISK_LABEL[rowAi.risk.riskLevel]}
+                          >
+                            <AlertTriangleIcon width={11} height={11} /> {RISK_LABEL[rowAi.risk.riskLevel] || rowAi.risk.riskLevel}
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="ai-action-btn"
+                            onClick={(e) => handleCheckRisk(e, quote.Id)}
+                            disabled={rowAi.riskLoading}
+                            title="Check risk with AI"
+                          >
+                            <AlertTriangleIcon width={13} height={13} /> {rowAi.riskLoading ? '...' : 'Check Risk'}
+                          </button>
+                        )}
+                        {rowAi.riskError && <div className="quotes-ai-error">{rowAi.riskError}</div>}
+                      </td>
+                    </motion.tr>
+                  );
+                })}
               </AnimatePresence>
             </tbody>
           </table>
@@ -174,7 +248,59 @@ export const QuotesView = () => {
           onDeleted={refetch}
         />
       )}
+
+      <QuoteEmailDraftModal
+        quote={quotes.find((q) => q.Id === emailDraftFor) || null}
+        state={emailDraftFor ? aiState[emailDraftFor] : null}
+        onClose={() => setEmailDraftFor(null)}
+        toast={toast}
+      />
     </div>
+  );
+};
+
+/**
+ * QuoteEmailDraftModal - shows the AI-drafted follow-up email for a quote.
+ * Draft-only: this never sends anything itself - "Copy" is the only action,
+ * so actually emailing a customer still goes through QuoteBuilder's existing
+ * "Email PDF" flow with its own Salesforce-Contact recipient allowlist.
+ */
+const QuoteEmailDraftModal = ({ quote, state, onClose, toast }) => {
+  const handleCopy = async () => {
+    if (!state?.email) return;
+    try {
+      await navigator.clipboard.writeText(`Subject: ${state.email.subject}\n\n${state.email.body}`);
+      toast.success('Email draft copied to clipboard');
+    } catch {
+      toast.error('Failed to copy - your browser may be blocking clipboard access');
+    }
+  };
+
+  return (
+    <Modal isOpen={Boolean(quote)} onClose={onClose} title={quote ? `AI Draft: ${quote.Name}` : 'AI Draft'} maxWidth={560}>
+      {state?.emailLoading && <div className="quotes-loading">Drafting email...</div>}
+      {state?.emailError && <div className="quotes-error">{state.emailError}</div>}
+      {state?.email && (
+        <div className="ai-email-draft">
+          <div className="filter-group">
+            <label>Subject</label>
+            <input type="text" value={state.email.subject} readOnly />
+          </div>
+          <div className="filter-group">
+            <label>Body</label>
+            <textarea rows={10} value={state.email.body} readOnly />
+          </div>
+          <p className="ai-email-draft-hint">
+            This is a draft only - nothing has been sent. Copy it to send yourself, or use "Email PDF" on the quote
+            for the app's tracked send flow.
+          </p>
+          <div className="confirm-actions">
+            <button type="button" className="btn-modal-secondary" onClick={onClose}>Close</button>
+            <button type="button" className="btn-modal-primary" onClick={handleCopy}>Copy to Clipboard</button>
+          </div>
+        </div>
+      )}
+    </Modal>
   );
 };
 

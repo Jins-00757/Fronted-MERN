@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useToast } from '../../context/useToast';
 import { markSelfAction } from '../../utils/recentSelfActions';
+import { getAccountActivitySummary } from '../../services/aiActionsApi';
 import { Modal } from '../ui/Modal';
 import { PlusIcon, BuildingIcon, SearchIcon, DollarIcon, EmptyBoxIllustration, BriefcaseIcon } from '../ui/DashboardIcons';
 import './AccountsView.css';
@@ -279,9 +280,14 @@ const AccountFormModal = ({ state, onClose, onCreate, onUpdate, isSubmitting }) 
 };
 
 const AccountDetailModal = ({ accountId, onClose, onEdit, onViewQuotes }) => {
+  const toast = useToast();
   const [data, setData] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [activitySummary, setActivitySummary] = useState(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summaryError, setSummaryError] = useState(null);
 
   useEffect(() => {
     if (!accountId) return undefined;
@@ -290,6 +296,8 @@ const AccountDetailModal = ({ accountId, onClose, onEdit, onViewQuotes }) => {
     setIsLoading(true);
     setData(null);
     setContacts([]);
+    setActivitySummary(null);
+    setSummaryError(null);
 
     Promise.all([
       api.get(`/salesforce/accounts/${accountId}/opportunities`),
@@ -306,6 +314,20 @@ const AccountDetailModal = ({ accountId, onClose, onEdit, onViewQuotes }) => {
     return () => { cancelled = true; };
   }, [accountId]);
 
+  const handleSummarizeActivity = async () => {
+    setIsSummarizing(true);
+    setSummaryError(null);
+    try {
+      const result = await getAccountActivitySummary(accountId);
+      setActivitySummary(result.bullets || []);
+    } catch (err) {
+      setSummaryError(err.message || 'Failed to summarize activity');
+      toast.error(err.message || 'Failed to summarize activity');
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
   return (
     <Modal isOpen={Boolean(accountId)} onClose={onClose} title={data?.account?.Name || 'Account'} maxWidth={620}>
       {isLoading && <div className="accounts-loading">Loading...</div>}
@@ -315,7 +337,19 @@ const AccountDetailModal = ({ accountId, onClose, onEdit, onViewQuotes }) => {
           <div className="account-detail-row"><span>City</span><strong>{data.account.BillingCity || '—'}</strong></div>
           <div className="account-detail-row"><span>Annual Revenue</span><strong>{data.account.AnnualRevenue ? `$${Number(data.account.AnnualRevenue).toLocaleString()}` : '—'}</strong></div>
 
-          <button type="button" className="btn-modal-secondary account-edit-btn" onClick={() => onEdit(data.account)}>Edit Account</button>
+          <div className="account-edit-btn-row">
+            <button type="button" className="btn-modal-secondary account-edit-btn" onClick={() => onEdit(data.account)}>Edit Account</button>
+            <button type="button" className="btn-modal-secondary" onClick={handleSummarizeActivity} disabled={isSummarizing}>
+              {isSummarizing ? 'Summarizing...' : '✨ Summarize Activity'}
+            </button>
+          </div>
+
+          {summaryError && <div className="accounts-error">{summaryError}</div>}
+          {activitySummary && (
+            <ul className="account-activity-summary">
+              {activitySummary.map((bullet, i) => <li key={i}>{bullet}</li>)}
+            </ul>
+          )}
 
           <h3 className="account-detail-section-title">Contacts ({contacts.length})</h3>
           {contacts.length === 0 && <p className="account-detail-empty">No contacts yet.</p>}
