@@ -1,0 +1,172 @@
+/* Fronted-MERN/src/components/salesforce/BulkOperationsGuide.css */
+
+.bog-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Mirrors .bulk-tabs/.bulk-tab in BulkOperations.css so the guide's own
+   tabs read as the same visual language as the Import/Export tabs on the
+   page it opens from. */
+.bog-tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  align-self: flex-start;
+}
+
+.bog-tab {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.bog-tab:hover {
+  color: var(--text-primary);
+}
+
+.bog-tab.active {
+  background: var(--bg-card);
+  color: var(--primary-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.bog-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.bog-panel h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.bog-limit-group + .bog-limit-group {
+  margin-top: 0.25rem;
+}
+
+.bog-limit-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bog-limit-table tr + tr td {
+  border-top: 1px solid var(--border-color);
+}
+
+.bog-limit-item {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+  width: 38%;
+  vertical-align: top;
+}
+
+.bog-limit-value {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  vertical-align: top;
+}
+
+.bog-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bog-step {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+}
+
+.bog-step strong {
+  display: block;
+  font-size: 0.87rem;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.bog-step p {
+  margin: 0;
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.bog-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bog-list li {
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.bog-security-item {
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid var(--primary-color);
+  background: var(--bg-subtle);
+  border-radius: 0 8px 8px 0;
+}
+
+.bog-security-item strong {
+  display: block;
+  font-size: 0.87rem;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+}
+
+.bog-security-item p {
+  margin: 0;
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.bog-source {
+  margin: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.76rem;
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+
+.bog-source a {
+  color: var(--primary-color);
+}
+
+@media (max-width: 640px) {
+  .bog-limit-item {
+    width: 50%;
+  }
+}

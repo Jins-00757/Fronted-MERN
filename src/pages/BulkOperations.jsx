@@ -6,7 +6,8 @@ import { canManageSalesforceRecords } from '../utils/permissions';
 import api from '../services/api';
 import { downloadFile, downloadFileFromLink } from '../utils/secureDownload';
 import { Modal } from '../components/ui/Modal';
-import { DownloadIcon } from '../components/ui/DashboardIcons';
+import { DownloadIcon, InfoIcon } from '../components/ui/DashboardIcons';
+import { BulkOperationsGuide } from '../components/salesforce/BulkOperationsGuide';
 import './BulkOperations.css';
 
 const OPERATIONS = ['insert', 'update', 'upsert', 'delete'];
@@ -50,6 +51,7 @@ export default function BulkOperations() {
   const [jobs, setJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [detailJobId, setDetailJobId] = useState(null);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const fetchJobs = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setJobsLoading(true);
@@ -173,7 +175,12 @@ export default function BulkOperations() {
   if (!canManageSalesforceRecords(user)) {
     return (
       <div className="bulk-operations container">
-        <h1>Bulk Operations</h1>
+        <div className="bulk-header-row">
+          <h1>Bulk Operations</h1>
+          <button type="button" className="bulk-guide-btn" onClick={() => setIsGuideOpen(true)}>
+            <InfoIcon width={14} height={14} /> Limits & Best Practices
+          </button>
+        </div>
         <div className="bulk-permission-notice">
           <p>
             Bulk operations can create, update, or permanently delete many Salesforce records at once, so
@@ -181,13 +188,19 @@ export default function BulkOperations() {
           </p>
           <p>Contact your workspace admin if you need access.</p>
         </div>
+        <BulkOperationsGuide isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
       </div>
     );
   }
 
   return (
     <div className="bulk-operations container">
-      <h1>Bulk Operations</h1>
+      <div className="bulk-header-row">
+        <h1>Bulk Operations</h1>
+        <button type="button" className="bulk-guide-btn" onClick={() => setIsGuideOpen(true)}>
+          <InfoIcon width={14} height={14} /> Limits & Best Practices
+        </button>
+      </div>
       <p className="bulk-subtitle">
         Insert, update, upsert, or delete Salesforce records in bulk via the Bulk API - or export existing
         records to CSV.
@@ -410,6 +423,7 @@ export default function BulkOperations() {
       </div>
 
       {detailJobId && <JobDetailModal jobId={detailJobId} onClose={() => setDetailJobId(null)} />}
+      <BulkOperationsGuide isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
     </div>
   );
 }

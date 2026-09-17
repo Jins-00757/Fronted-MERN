@@ -2,6 +2,37 @@
   max-width: 900px;
 }
 
+.bulk-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.bulk-header-row h1 {
+  margin: 0;
+}
+
+.bulk-guide-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--primary-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.bulk-guide-btn:hover {
+  background: var(--bg-hover);
+}
+
 .bulk-subtitle {
   color: var(--text-muted);
   margin-bottom: 2rem;
