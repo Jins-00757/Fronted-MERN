@@ -26,3 +26,16 @@ export const generateOpportunityExecSummary = (payload) =>
 
 export const parseSearchQuery = (query) =>
   api.post('/ai/search/parse-query', { query }).then((res) => res.data.data);
+
+/**
+ * CRM Actions Assistant (Groq function calling - see Backend-MERN's
+ * aiToolsService.js). sendAssistantMessage may return a `pendingAction` the
+ * caller must show the user and get explicit confirmation on before ever
+ * calling confirmAssistantAction - that second call is what actually
+ * executes a real Salesforce write (via jsforce), never the message call.
+ */
+export const sendAssistantMessage = (payload) =>
+  api.post('/ai/assistant/message', payload).then((res) => res.data.data);
+
+export const confirmAssistantAction = (payload) =>
+  api.post('/ai/assistant/confirm', payload).then((res) => res.data.data);

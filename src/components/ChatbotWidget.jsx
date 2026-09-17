@@ -36,7 +36,19 @@ export const ChatbotWidget = () => {
   // GROQ_API_KEY configured.
   const [isAvailable, setIsAvailable] = useState(null);
   const [input, setInput] = useState('');
-  const { messages, isSending, error, sendMessage, clearConversation } = useChatbot();
+  const {
+    messages,
+    isSending,
+    error,
+    sendMessage,
+    clearConversation,
+    actionsEnabled,
+    toggleActionsEnabled,
+    pendingAction,
+    isConfirming,
+    confirmPendingAction,
+    cancelPendingAction,
+  } = useChatbot();
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
@@ -101,9 +113,17 @@ export const ChatbotWidget = () => {
             <div className="chatbot-header">
               <div>
                 <strong>AI Assistant</strong>
-                <span className="chatbot-subtitle">General help only - not connected to your live CRM data</span>
+                <span className="chatbot-subtitle">
+                  {actionsEnabled
+                    ? 'CRM Actions mode - can look up your quotes and propose changes to Salesforce'
+                    : 'General help only - not connected to your live CRM data'}
+                </span>
               </div>
               <div className="chatbot-header-actions">
+                <label className="chatbot-actions-toggle" title="Let the assistant look up quotes and propose CRM actions (e.g. approve & sync to Salesforce)">
+                  <input type="checkbox" checked={actionsEnabled} onChange={toggleActionsEnabled} />
+                  Actions
+                </label>
                 {messages.length > 0 && (
                   <button type="button" className="chatbot-icon-btn" onClick={clearConversation}>
                     Clear
@@ -118,7 +138,9 @@ export const ChatbotWidget = () => {
             <div className="chatbot-messages" ref={listRef}>
               {messages.length === 0 && (
                 <div className="chatbot-empty">
-                  Ask me to draft a follow-up email, explain a CRM feature, or summarize something you paste in.
+                  {actionsEnabled
+                    ? 'Try "Approve quote Q-00123 and sync it to Salesforce" or "Find my quotes for Acme".'
+                    : 'Ask me to draft a follow-up email, explain a CRM feature, or summarize something you paste in.'}
                 </div>
               )}
               {messages.map((m, i) => (
@@ -131,6 +153,19 @@ export const ChatbotWidget = () => {
                   <span />
                   <span />
                   <span />
+                </div>
+              )}
+              {pendingAction && (
+                <div className="chatbot-pending-action" role="alertdialog" aria-label="Confirm CRM action">
+                  <p>{pendingAction.summary}</p>
+                  <div className="chatbot-pending-action-buttons">
+                    <button type="button" onClick={cancelPendingAction} disabled={isConfirming} className="chatbot-pending-cancel">
+                      Cancel
+                    </button>
+                    <button type="button" onClick={confirmPendingAction} disabled={isConfirming} className="chatbot-pending-confirm">
+                      {isConfirming ? 'Applying...' : 'Confirm'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

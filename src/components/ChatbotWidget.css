@@ -84,6 +84,21 @@
   color: var(--text-primary);
 }
 
+.chatbot-actions-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.chatbot-actions-toggle input {
+  cursor: pointer;
+}
+
 .chatbot-messages {
   flex: 1;
   overflow-y: auto;
@@ -157,6 +172,53 @@
     transform: translateY(-4px);
     opacity: 1;
   }
+}
+
+.chatbot-pending-action {
+  align-self: stretch;
+  background: var(--bg-subtle);
+  border: 1px solid var(--primary-color);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.83rem;
+}
+
+.chatbot-pending-action p {
+  margin: 0 0 0.6rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.chatbot-pending-action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.chatbot-pending-action-buttons button {
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chatbot-pending-action-buttons button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.chatbot-pending-cancel {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+.chatbot-pending-confirm {
+  background: var(--primary-color);
+  color: white;
+  border: none;
 }
 
 .chatbot-error {
