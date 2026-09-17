@@ -36,6 +36,8 @@ import { BriefcaseIcon, CheckCircleIcon, DollarIcon, ListIcon, UsersIcon, Trendi
 import { isElevatedRole } from './utils/permissions';
 import { CommandPalette } from './components/ui/CommandPalette';
 import { GlobalActivityToaster } from './components/GlobalActivityToaster';
+import { DealWonCelebration } from './components/DealWonCelebration';
+import { onDealClosed } from './utils/dealEvents';
 import { downloadFileFromLink } from './utils/secureDownload';
 import './components/AnalyticsDashboard.css';
 import './components/SaaSMetricsDashboard.css';
@@ -141,6 +143,7 @@ function App() {
           <>
             <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
             <GlobalActivityToaster />
+            <DealWonCelebration />
           </>
         )}
 
@@ -358,6 +361,14 @@ function Dashboard({ onSalesforceConnect, salesforceConnected }) {
   // text below for how this is surfaced.
   const [statsError, setStatsError] = useState(null);
   const [statsRefreshKey, setStatsRefreshKey] = useState(0);
+
+  // Live-refresh the moment a deal closes in Salesforce itself (see
+  // DealWonCelebration.jsx / the inbound webhook) - re-running the same
+  // fetch effect below re-populates `stats` with the real, post-close
+  // numbers, and MetricCard's CountUpValue (see ui/ReportWidgets.jsx)
+  // animates from the old total to the new one automatically, no extra
+  // counter component needed.
+  useEffect(() => onDealClosed(() => setStatsRefreshKey((k) => k + 1)), []);
 
   // Role-aware dashboard section: manager/admin get a live team summary
   // (their own team for a manager, org-wide by default for admin - see

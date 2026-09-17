@@ -16,6 +16,12 @@ const DEFAULT_EVENT_TYPES = [
   // a bad address or SMTP outage was invisible until an external bounce
   // showed up in the user's inbox, if ever.
   'notification.email_failed',
+  // Pushed by the inbound Salesforce webhook when an Opportunity a quote
+  // was sent for is closed directly in Salesforce (see Backend-MERN's
+  // webhookController.js) - see DealWonCelebration.jsx for the dedicated
+  // celebratory toast this also drives.
+  'deal.won',
+  'deal.lost',
 ];
 
 /**

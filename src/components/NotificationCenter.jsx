@@ -1,5 +1,5 @@
 
-import { PlusIcon, EditIcon, CheckCircleIcon, AlertTriangleIcon, InfoIcon } from './ui/DashboardIcons';
+import { PlusIcon, EditIcon, CheckCircleIcon, AlertTriangleIcon, InfoIcon, TrendingUpIcon } from './ui/DashboardIcons';
 import './NotificationCenter.css';
 
 /**
@@ -46,6 +46,10 @@ const NotificationItem = ({ notification }) => {
         return <EditIcon width={16} height={16} />;
       case 'opportunity.closed':
         return <CheckCircleIcon width={16} height={16} />;
+      case 'deal.won':
+        return <TrendingUpIcon width={16} height={16} />;
+      case 'deal.lost':
+        return <AlertTriangleIcon width={16} height={16} />;
       case 'notification.email_failed':
         return <AlertTriangleIcon width={16} height={16} />;
       default:

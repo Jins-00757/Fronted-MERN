@@ -41,6 +41,21 @@
 .toast--info { border-left-color: #3b82f6; }
 .toast--info .toast-icon { color: #3b82f6; }
 
+.toast--celebration {
+  border-left-width: 4px;
+  border-left-color: #f59e0b;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(245, 158, 11, 0.12)), var(--bg-card);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.25);
+  animation: celebration-glow 1.8s ease-in-out 2;
+}
+.toast--celebration .toast-icon { color: #f59e0b; }
+.toast--celebration .toast-title { color: #10b981; }
+
+@keyframes celebration-glow {
+  0%, 100% { box-shadow: 0 10px 30px rgba(16, 185, 129, 0.25); }
+  50% { box-shadow: 0 10px 36px rgba(245, 158, 11, 0.4); }
+}
+
 .toast-body {
   flex: 1;
   min-width: 0;

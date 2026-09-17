@@ -7,6 +7,7 @@ import { OpportunitiesBoard } from './OpportunitiesBoard';
 import { Modal } from '../ui/Modal';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { markSelfAction } from '../../utils/recentSelfActions';
+import { onDealClosed } from '../../utils/dealEvents';
 import { canManageSalesforceRecords } from '../../utils/permissions';
 import {
   PlusIcon,
@@ -134,6 +135,15 @@ export const OpportunitiesList = () => {
   }, [user?.isSalesforceConnected, viewMode, page, filters.stage, filters.amountMin, filters.amountMax, refreshKey]);
 
   const refetch = () => setRefreshKey((k) => k + 1);
+
+  // A deal closing directly in Salesforce (not through this app - see the
+  // inbound webhook / DealWonCelebration.jsx) still needs to move this
+  // page's stage badge to "Closed Won"/"Closed Lost" without the user
+  // refreshing the page - refetching here re-pulls the now-updated stage
+  // straight from Salesforce, the same source of truth every other read on
+  // this page already trusts, and also refreshes the board view below
+  // (which shares this same refreshKey).
+  useEffect(() => onDealClosed(() => refetch()), []);
 
   const handleFilterChange = (field, value) => {
     setPage(1);
@@ -310,12 +320,19 @@ export const OpportunitiesList = () => {
                           <td className="opp-name-cell">{opp.Name}</td>
                           <td className="align-right">{formatCurrency(opp.Amount)}</td>
                           <td>
-                            <span
-                              className="stage-pill"
-                              style={{ background: STAGE_COLORS[opp.StageName] || '#6b7280' }}
-                            >
-                              {opp.StageName}
-                            </span>
+                            <AnimatePresence mode="popLayout" initial={false}>
+                              <motion.span
+                                key={opp.StageName}
+                                className="stage-pill"
+                                style={{ background: STAGE_COLORS[opp.StageName] || '#6b7280' }}
+                                initial={{ opacity: 0, y: -6, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 6, scale: 0.9 }}
+                                transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                              >
+                                {opp.StageName}
+                              </motion.span>
+                            </AnimatePresence>
                           </td>
                           <td>{opp.CloseDate ? new Date(opp.CloseDate).toLocaleDateString() : 'N/A'}</td>
                           <td>{opp.Owner?.Name || 'N/A'}</td>
